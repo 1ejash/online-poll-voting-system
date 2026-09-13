@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Online Poll{% endblock %}
+
+{% block content %}
+
+<div class="card form-card">
+
+    <div class="form-title">
+        <div class="icon">🔐</div>
+        <h1>Login</h1>
+        <p>Please choose the correct login type</p>
+    </div>
+
+    <div class="results-actions">
+        <a href="/user-login" class="btn btn-primary">
+            👤 User Login
+        </a>
+        <a href="/admin-login" class="btn btn-admin">
+            👨‍💼 Admin Login
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

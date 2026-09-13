@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Poll - Admin{% endblock %}
+
+{% block nav %}
+<a href="/admin">Dashboard</a>
+<a href="/logout">Logout</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="card create-card">
+
+    <div class="form-title">
+        <div class="icon">✏️</div>
+        <h1>Edit Poll</h1>
+        <p>Update poll details and voting options</p>
+    </div>
+
+    <form method="POST">
+
+        <div class="form-group">
+            <label for="question">Poll Question</label>
+            <input
+                type="text"
+                id="question"
+                name="question"
+                value="{{ poll[1] }}"
+                maxlength="255"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                name="description"
+                required
+            >{{ poll[2] }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Poll Status</label>
+            <select id="status" name="status" required>
+                <option
+                    value="active"
+                    {% if poll[3] == "active" %}selected{% endif %}
+                >
+                    Active
+                </option>
+                <option
+                    value="closed"
+                    {% if poll[3] == "closed" %}selected{% endif %}
+                >
+                    Closed
+                </option>
+            </select>
+        </div>
+
+        <h3 class="options-title">📝 Poll Options</h3>
+
+        <div class="form-group">
+            <label for="option1">Option 1</label>
+            <input
+                type="text"
+                id="option1"
+                name="option1"
+                value="{{ options[0][1] }}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="option2">Option 2</label>
+            <input
+                type="text"
+                id="option2"
+                name="option2"
+                value="{{ options[1][1] }}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="option3">Option 3</label>
+            <input
+                type="text"
+                id="option3"
+                name="option3"
+                value="{{ options[2][1] }}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="option4">Option 4</label>
+            <input
+                type="text"
+                id="option4"
+                name="option4"
+                value="{{ options[3][1] }}"
+                required
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary full-width">
+            💾 Update Poll
+        </button>
+
+    </form>
+
+    <a href="/admin" class="back-link">
+        ⬅️ Back to Dashboard
+    </a>
+
+</div>
+
+{% endblock %}

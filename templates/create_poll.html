@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Create Poll - Admin{% endblock %}
+
+{% block nav %}
+<a href="/admin">Dashboard</a>
+<a href="/logout">Logout</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="card create-card">
+
+    <div class="form-title">
+        <div class="icon">➕</div>
+        <h1>Create New Poll</h1>
+        <p>Add a question and four voting options</p>
+    </div>
+
+    <form method="POST">
+
+        <div class="form-group">
+            <label for="question">Poll Question</label>
+            <input
+                type="text"
+                id="question"
+                name="question"
+                placeholder="Enter poll question"
+                maxlength="255"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                name="description"
+                placeholder="Enter poll description"
+                required
+            ></textarea>
+        </div>
+
+        <h3 class="options-title">📝 Poll Options</h3>
+
+        <div class="form-group">
+            <label for="option1">Option 1</label>
+            <input
+                type="text"
+                id="option1"
+                name="option1"
+                placeholder="Enter option 1"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="option2">Option 2</label>
+            <input
+                type="text"
+                id="option2"
+                name="option2"
+                placeholder="Enter option 2"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="option3">Option 3</label>
+            <input
+                type="text"
+                id="option3"
+                name="option3"
+                placeholder="Enter option 3"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="option4">Option 4</label>
+            <input
+                type="text"
+                id="option4"
+                name="option4"
+                placeholder="Enter option 4"
+                required
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary full-width">
+            🚀 Create Poll
+        </button>
+
+    </form>
+
+    <a href="/admin" class="back-link">
+        ⬅️ Back to Dashboard
+    </a>
+
+</div>
+
+{% endblock %}

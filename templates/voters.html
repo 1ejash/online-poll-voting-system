@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Voter Details - Online Polling System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .voters-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .voters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .voters-header h1 {
+            margin: 0;
+        }
+
+        .voters-header p {
+            margin-top: 8px;
+            color: #6b7280;
+        }
+
+        .filter-card {
+            background: #ffffff;
+            padding: 22px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .filter-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #111827;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-form input {
+            flex: 1;
+            min-width: 260px;
+            padding: 13px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .filter-form input:focus {
+            border-color: #2563eb;
+        }
+
+        .search-btn,
+        .clear-btn {
+            padding: 13px 20px;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+        }
+
+        .search-btn {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .search-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-btn {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .clear-btn:hover {
+            background: #d1d5db;
+        }
+
+        .summary-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .summary-card h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #111827;
+        }
+
+        .summary-card p {
+            margin: 5px 0 0;
+            color: #6b7280;
+        }
+
+        .vote-count {
+            font-size: 30px;
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        .table-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            overflow-x: auto;
+        }
+
+        .voters-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        .voters-table th {
+            background: #f3f6fb;
+            color: #374151;
+            padding: 15px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .voters-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+
+        .voters-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .email-text {
+            color: #4b5563;
+        }
+
+        .option-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #e8f0fe;
+            color: #2563eb;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 11px 18px;
+            border-radius: 10px;
+            background: #f3f4f6;
+            color: #374151;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6b7280;
+        }
+
+        .empty-message h2 {
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 700px) {
+
+            .voters-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-form input {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .search-btn,
+            .clear-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .summary-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="voters-container">
+
+    <div class="voters-header">
+
+        <div>
+            <h1>Voter Details</h1>
+
+            <p>
+                Search and view voting details of registered users.
+            </p>
+        </div>
+
+        <a href="/admin" class="back-btn">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+
+    <div class="filter-card">
+
+        <div class="filter-title">
+            🔍 Find Voter
+        </div>
+
+        <form method="GET"
+              action="/admin/voters"
+              class="filter-form">
+
+            <input
+                type="text"
+                name="search"
+                placeholder="Enter user name or Gmail..."
+                value="{{ search }}"
+            >
+
+            <button
+                type="submit"
+                class="search-btn">
+                Search
+            </button>
+
+            <a
+                href="/admin/voters"
+                class="clear-btn">
+                Clear
+            </a>
+
+        </form>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <div>
+
+            {% if search %}
+
+                <h2>
+                    Search Result
+                </h2>
+
+                <p>
+                    Showing voting records for:
+                    <strong>{{ search }}</strong>
+                </p>
+
+            {% else %}
+
+                <h2>
+                    All Voting Records
+                </h2>
+
+                <p>
+                    Complete voting activity of users
+                </p>
+
+            {% endif %}
+
+        </div>
+
+        <div class="vote-count">
+            {{ voters|length }}
+        </div>
+
+    </div>
+
+
+    <div class="table-card">
+
+        {% if voters %}
+
+        <table class="voters-table">
+
+            <thead>
+
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>User Name</th>
+                    <th>Email</th>
+                    <th>Poll</th>
+                    <th>Selected Option</th>
+                    <th>Voted At</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for voter in voters %}
+
+                <tr>
+
+                    <td>
+                        {{ loop.index }}
+                    </td>
+
+                    <td>
+                        <span class="user-name">
+                            {{ voter[1] }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="email-text">
+                            {{ voter[2] }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ voter[3] }}
+                    </td>
+
+                    <td>
+                        <span class="option-badge">
+                            {{ voter[4] }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ voter[5] }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <div class="empty-message">
+
+            <h2>
+                No Votes Found
+            </h2>
+
+            {% if search %}
+
+            <p>
+                No voting records found for
+                <strong>{{ search }}</strong>.
+            </p>
+
+            {% else %}
+
+            <p>
+                No user has submitted a vote yet.
+            </p>
+
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

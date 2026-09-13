@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Online Poll{% endblock %}
+
+{% block nav %}
+<a href="/admin">Dashboard</a>
+<a href="/admin/create-poll">Create Poll</a>
+<a href="/logout">Logout</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="dashboard-header">
+        <div class="page-header">
+            <h1>👨‍💼 Admin Dashboard</h1>
+            <p>Manage polls and monitor voting activity</p>
+        </div>
+
+        <a href="/admin/create-poll" class="btn btn-primary">
+            ➕ Create New Poll
+        </a>
+        <a href="/admin/voters" class="btn btn-primary">
+            👥 Voter Details
+        </a>
+    </div>
+
+    <div class="stats-grid">
+
+        <div class="card stat-card blue">
+            <div class="stat-icon">👥</div>
+            <h2>{{ total_users }}</h2>
+            <p>Total Users</p>
+        </div>
+
+        <div class="card stat-card purple">
+            <div class="stat-icon">🗳️</div>
+            <h2>{{ total_polls }}</h2>
+            <p>Total Polls</p>
+        </div>
+
+        <div class="card stat-card green">
+            <div class="stat-icon">📊</div>
+            <h2>{{ total_votes }}</h2>
+            <p>Total Votes</p>
+        </div>
+
+        <div class="card stat-card orange">
+            <div class="stat-icon">🟢</div>
+            <h2>{{ active_polls }}</h2>
+            <p>Active Polls</p>
+        </div>
+
+    </div>
+
+    <div class="card table-card">
+
+        <div class="table-header">
+            <h2>📋 Poll Management</h2>
+        </div>
+
+        <table class="poll-table">
+
+            <thead>
+                <tr>
+                    <th>Poll ID</th>
+                    <th>Poll Question</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for poll in polls %}
+
+                <tr>
+                    <td><strong>{{ loop.index }}</strong></td>
+
+                    <td>{{ poll[1] }}</td>
+
+                    <td>
+                        {% if poll[3] == "active" %}
+                        <span class="status-active">🟢 Active</span>
+                        {% else %}
+                        <span class="status-closed">🔴 Closed</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div class="action-links">
+
+                            <a
+                                href="/results/{{ poll[0] }}"
+                                class="action-link action-results"
+                            >
+                                📊 Results
+                            </a>
+
+                            <a
+                                href="/admin/edit-poll/{{ poll[0] }}"
+                                class="action-link action-edit"
+                            >
+                                ✏️ Edit
+                            </a>
+
+                            <a
+                                href="/admin/delete-poll/{{ poll[0] }}"
+                                class="action-link action-delete delete-link"
+                            >
+                                🗑️ Delete
+                            </a>
+
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

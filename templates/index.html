@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Online Poll & Voting System{% endblock %}
+
+{% block nav %}
+<a href="/user-login">User Login</a>
+<a href="/admin-login">Admin Login</a>
+{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+
+    <div class="hero-icon">🗳️</div>
+
+    <h1>Online Poll & Voting System</h1>
+
+    <p class="hero-description">
+        A simple and secure platform for creating polls,
+        participating in online voting, and viewing graphical
+        results instantly.
+    </p>
+
+    <div class="login-options">
+
+        <div class="card login-choice">
+            <div class="choice-icon">👤</div>
+            <h2>User</h2>
+            <p>
+                Participate in polls, submit your vote,
+                and view voting results.
+            </p>
+            <a href="/user-login" class="btn btn-primary full-width">
+                User Login
+            </a>
+        </div>
+
+        <div class="card login-choice">
+            <div class="choice-icon">👨‍💼</div>
+            <h2>Administrator</h2>
+            <p>
+                Create and manage polls, monitor votes,
+                and analyze results.
+            </p>
+            <a href="/admin-login" class="btn btn-admin full-width">
+                Admin Login
+            </a>
+        </div>
+
+    </div>
+
+    <div class="small-link">
+        New user?
+        <a href="/register">Create an Account</a>
+    </div>
+
+</section>
+
+<section class="features">
+
+    <div class="card feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure Voting</h3>
+        <p>Each registered user can vote only once in a poll.</p>
+    </div>
+
+    <div class="card feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Graphical Results</h3>
+        <p>View voting results using interactive bar and pie charts.</p>
+    </div>
+
+    <div class="card feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant Results</h3>
+        <p>Vote counts are automatically updated after voting.</p>
+    </div>
+
+</section>
+
+{% endblock %}

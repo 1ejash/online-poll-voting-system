@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Vote - Online Poll{% endblock %}
+
+{% block nav %}
+<a href="/polls">Polls</a>
+<a href="/logout">Logout</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="card vote-card">
+
+    <div class="vote-header">
+        <div class="icon">🗳️</div>
+        <h1>Cast Your Vote</h1>
+        <div class="vote-question">{{ poll[1] }}</div>
+        <div class="vote-description">{{ poll[2] }}</div>
+    </div>
+
+    <form method="POST">
+
+        <div class="option-list">
+
+            {% for option in options %}
+
+            <label class="option-label">
+                <input
+                    type="radio"
+                    name="option_id"
+                    value="{{ option[0] }}"
+                    required
+                >
+                <span class="option-text">
+                    {{ option[2] }}
+                </span>
+            </label>
+
+            {% endfor %}
+
+        </div>
+
+        <button type="submit" class="btn btn-primary full-width">
+            🗳️ Submit Vote
+        </button>
+
+    </form>
+
+    <a href="/polls" class="back-link">
+        ⬅️ Back to Polls
+    </a>
+
+</div>
+
+{% endblock %}

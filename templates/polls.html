@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Available Polls - Online Poll{% endblock %}
+
+{% block nav %}
+<a href="/polls">Polls</a>
+<a href="/logout">Logout</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-header center">
+        <h1>🗳️ Available Polls</h1>
+        <p>Choose a poll and submit your vote</p>
+    </div>
+
+    {% if polls %}
+
+    <div class="poll-grid">
+
+        {% for poll in polls %}
+
+        <div class="card poll-card">
+
+            <span class="poll-status">🟢 Active</span>
+
+            <h2>{{ poll[1] }}</h2>
+
+            <p class="poll-description">
+                {{ poll[2] }}
+            </p>
+
+            <div class="poll-actions">
+
+                {% if poll[4] == 1 %}
+
+                <span class="voted-message">
+                    ✅ You have already voted
+                </span>
+
+                <a
+                    href="/results/{{ poll[0] }}"
+                    class="btn btn-secondary"
+                >
+                    📊 Results
+                </a>
+
+                {% else %}
+
+                <a
+                    href="/vote/{{ poll[0] }}"
+                    class="btn btn-primary"
+                >
+                    🗳️ Vote Now
+                </a>
+
+                <a
+                    href="/results/{{ poll[0] }}"
+                    class="btn btn-secondary"
+                >
+                    📊 Results
+                </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="card no-polls">
+        <div class="empty-icon">📭</div>
+        <h2>No Active Polls</h2>
+        <p>There are currently no active polls available.</p>
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

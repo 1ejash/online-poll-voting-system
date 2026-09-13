@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Poll Results - Online Poll{% endblock %}
+
+{% block nav %}
+<a href="/polls">Polls</a>
+<a href="/logout">Logout</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-header center">
+        <h1>📊 Poll Results</h1>
+        <p>Graphical analysis of voting results</p>
+    </div>
+
+    <div class="card results-summary">
+
+        <h2>📋 Vote Summary</h2>
+
+        {% for result in results %}
+
+        <div class="result-row">
+            <span class="option-name">{{ result[0] }}</span>
+            <span class="vote-count">{{ result[1] }} vote(s)</span>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <div class="charts-container">
+
+        <div class="card chart-card">
+            <h2>📊 Bar Chart</h2>
+            <div class="chart-box">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card chart-card">
+            <h2>🥧 Pie Chart</h2>
+            <div class="chart-box">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="results-actions">
+        <a href="/polls" class="btn btn-secondary">
+            ⬅️ Back to Polls
+        </a>
+    </div>
+
+</div>
+
+<div id="chartData">
+    {% for result in results %}
+    <span
+        class="result-data"
+        data-label="{{ result[0] }}"
+        data-votes="{{ result[1] }}">
+    </span>
+    {% endfor %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+{% endblock %}
