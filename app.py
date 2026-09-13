@@ -1,12 +1,17 @@
+import os
 from flask import Flask, render_template, request, session, redirect
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, template_folder="templates")
 
-app.secret_key = "online_poll_secret_key"
+app.secret_key = os.getenv("SECRET_KEY", "online_poll_secret_key")
 
-app.config.from_pyfile("config.py")
+app.config["MYSQL_HOST"] = os.getenv("MYSQLHOST", "localhost")
+app.config["MYSQL_PORT"] = int(os.getenv("MYSQLPORT", "3306"))
+app.config["MYSQL_USER"] = os.getenv("MYSQLUSER", "root")
+app.config["MYSQL_PASSWORD"] = os.getenv("MYSQLPASSWORD", "")
+app.config["MYSQL_DB"] = os.getenv("MYSQLDATABASE", "online_poll_db")
 
 mysql = MySQL(app)
 
