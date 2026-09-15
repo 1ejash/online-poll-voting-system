@@ -1,73 +1,699 @@
 {% extends "base.html" %}
 
-{% block title %}Poll Results - Online Poll{% endblock %}
-
-{% block nav %}
-<a href="/polls">Polls</a>
-<a href="/logout">Logout</a>
-{% endblock %}
+{% block title %}Poll Results - Online Poll and Voting System{% endblock %}
 
 {% block content %}
 
-<div class="page-container">
+<section class="results-page">
 
-    <div class="page-header center">
-        <h1>📊 Poll Results</h1>
-        <p>Graphical analysis of voting results</p>
+    <div class="results-header">
+
+        <span class="page-label">POLL RESULTS</span>
+
+        <h1>📊 Voting Results</h1>
+
+        <p>See how users voted and explore the results graphically.</p>
+
     </div>
 
-    <div class="card results-summary">
 
-        <h2>📋 Vote Summary</h2>
+    <div class="results-container">
 
-        {% for result in results %}
+        <div class="result-question">
 
-        <div class="result-row">
-            <span class="option-name">{{ result[0] }}</span>
-            <span class="vote-count">{{ result[1] }} vote(s)</span>
+            <span class="result-status">
+                📈 Results
+            </span>
+
+            <h2>{{ poll[1] }}</h2>
+
+            {% if poll[2] %}
+                <p>{{ poll[2] }}</p>
+            {% endif %}
+
         </div>
 
-        {% endfor %}
 
-    </div>
+        {% set total_votes = results | sum(attribute=1) %}
 
-    <div class="charts-container">
+        {% set max_votes = results | map(attribute=1) | max if results else 0 %}
 
-        <div class="card chart-card">
-            <h2>📊 Bar Chart</h2>
-            <div class="chart-box">
-                <canvas id="barChart"></canvas>
+
+        <div class="result-summary">
+
+            <div class="summary-card">
+                <div class="summary-icon">🗳️</div>
+                <span>Total Votes</span>
+                <strong>{{ total_votes }}</strong>
             </div>
-        </div>
 
-        <div class="card chart-card">
-            <h2>🥧 Pie Chart</h2>
-            <div class="chart-box">
-                <canvas id="pieChart"></canvas>
+            <div class="summary-card">
+                <div class="summary-icon">📋</div>
+                <span>Total Options</span>
+                <strong>{{ results | length }}</strong>
             </div>
+
+            <div class="summary-card">
+                <div class="summary-icon">🏆</div>
+                <span>Highest Votes</span>
+                <strong>{{ max_votes }}</strong>
+            </div>
+
+        </div>
+
+
+        {% if results %}
+
+        <div class="results-content">
+
+
+            <div class="chart-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>📊 Graphical Analysis</h3>
+                        <p>Visual representation of votes for each option.</p>
+                    </div>
+
+                </div>
+
+                <div class="chart-box">
+
+                    <canvas id="resultsChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <div class="vote-breakdown">
+
+                <h3>📋 Vote Breakdown</h3>
+
+                <div class="breakdown-list">
+
+                    {% for result in results %}
+
+                        {% set option_name = result[0] %}
+                        {% set vote_count = result[1] %}
+
+                        {% if total_votes > 0 %}
+                            {% set percentage = ((vote_count / total_votes) * 100) | round(1) %}
+                        {% else %}
+                            {% set percentage = 0 %}
+                        {% endif %}
+
+
+                        <div class="breakdown-item">
+
+                            <div class="breakdown-top">
+
+                                <div class="option-name">
+                                    {{ option_name }}
+                                </div>
+
+                                <div class="option-votes">
+                                    {{ vote_count }} vote{% if vote_count != 1 %}s{% endif %}
+                                </div>
+
+                            </div>
+
+
+                            <div class="progress-bar">
+
+                                <div
+                                    class="progress-fill"
+                                    data-index="{{ loop.index0 }}"
+                                    style="width: {{ percentage }}%;"
+                                ></div>
+
+                            </div>
+
+
+                            <div class="breakdown-bottom">
+
+                                <span>{{ percentage }}%</span>
+
+                                {% if vote_count == max_votes and max_votes > 0 %}
+
+                                    <span class="winner-badge">
+                                        🏆 Leading
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="result-note">
+
+            <span>💡</span>
+
+            <div>
+                <strong>About these results</strong>
+
+                <p>
+                    Results are automatically calculated from the votes
+                    submitted by registered users.
+                </p>
+            </div>
+
+        </div>
+
+
+        {% else %}
+
+        <div class="no-results">
+
+            <div class="no-results-icon">📊</div>
+
+            <h3>No Votes Yet</h3>
+
+            <p>
+                No votes have been recorded for this poll yet.
+                Be the first person to vote!
+            </p>
+
+            <a href="/polls" class="btn btn-primary">
+                ← Back to Polls
+            </a>
+
+        </div>
+
+        {% endif %}
+
+
+        <div class="results-actions">
+
+            <a href="/polls" class="btn btn-secondary">
+                ← Back to Polls
+            </a>
+
+            <a href="/" class="btn btn-primary">
+                🏠 Home
+            </a>
+
         </div>
 
     </div>
 
-    <div class="results-actions">
-        <a href="/polls" class="btn btn-secondary">
-            ⬅️ Back to Polls
-        </a>
-    </div>
+</section>
 
-</div>
 
-<div id="chartData">
-    {% for result in results %}
-    <span
-        class="result-data"
-        data-label="{{ result[0] }}"
-        data-votes="{{ result[1] }}">
-    </span>
-    {% endfor %}
-</div>
+<style>
+
+    .results-page {
+        width: 90%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 55px 0 80px;
+    }
+
+
+    .results-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+
+    .page-label {
+        color: #2563eb;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+    }
+
+
+    .results-header h1 {
+        margin-top: 8px;
+        font-size: 38px;
+        color: #0f172a;
+    }
+
+
+    .results-header p {
+        margin-top: 8px;
+        color: #64748b;
+        font-size: 16px;
+    }
+
+
+    .results-container {
+        background: #ffffff;
+        border: 1px solid #dbe3ee;
+        border-radius: 16px;
+        padding: 35px;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.07);
+    }
+
+
+    .result-question {
+        padding-bottom: 25px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+
+    .result-status {
+        display: inline-flex;
+        padding: 6px 12px;
+        margin-bottom: 15px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+    .result-question h2 {
+        color: #172033;
+        font-size: 25px;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+
+
+    .result-question p {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+
+    .result-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 25px 0;
+    }
+
+
+    .summary-card {
+        padding: 20px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+
+    .summary-icon {
+        font-size: 25px;
+        margin-bottom: 7px;
+    }
+
+
+    .summary-card span {
+        display: block;
+        color: #64748b;
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+
+
+    .summary-card strong {
+        color: #172033;
+        font-size: 25px;
+    }
+
+
+    .results-content {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 25px;
+        margin-top: 25px;
+    }
+
+
+    .chart-section,
+    .vote-breakdown {
+        padding: 25px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #ffffff;
+    }
+
+
+    .section-heading {
+        margin-bottom: 20px;
+    }
+
+
+    .section-heading h3,
+    .vote-breakdown h3 {
+        color: #172033;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+
+    .section-heading p {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+
+    .chart-box {
+        position: relative;
+        width: 100%;
+        height: 330px;
+    }
+
+
+    .breakdown-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        margin-top: 20px;
+    }
+
+
+    .breakdown-item {
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+
+    .breakdown-item:last-child {
+        border-bottom: none;
+    }
+
+
+    .breakdown-top,
+    .breakdown-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+
+    .option-name {
+        color: #334155;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+
+    .option-votes {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+
+    .progress-bar {
+        width: 100%;
+        height: 9px;
+        margin: 9px 0 6px;
+        background: #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 20px;
+        transition: width 0.5s ease;
+    }
+
+
+    .breakdown-bottom {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+
+    .winner-badge {
+        padding: 4px 8px;
+        background: #fef3c7;
+        color: #92400e;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+
+    .result-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-top: 25px;
+        padding: 16px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+    }
+
+
+    .result-note > span {
+        font-size: 22px;
+    }
+
+
+    .result-note strong {
+        color: #1e40af;
+        font-size: 14px;
+    }
+
+
+    .result-note p {
+        margin-top: 4px;
+        color: #475569;
+        font-size: 13px;
+    }
+
+
+    .no-results {
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+
+    .no-results-icon {
+        font-size: 55px;
+        margin-bottom: 12px;
+    }
+
+
+    .no-results h3 {
+        color: #172033;
+        font-size: 23px;
+        margin-bottom: 8px;
+    }
+
+
+    .no-results p {
+        max-width: 500px;
+        margin: 0 auto 20px;
+        color: #64748b;
+        line-height: 1.6;
+    }
+
+
+    .results-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+
+    @media (max-width: 800px) {
+
+        .results-content {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+
+    @media (max-width: 600px) {
+
+        .results-page {
+            padding: 40px 0 60px;
+        }
+
+
+        .results-header h1 {
+            font-size: 30px;
+        }
+
+
+        .results-container {
+            padding: 22px 18px;
+        }
+
+
+        .result-question h2 {
+            font-size: 21px;
+        }
+
+
+        .result-summary {
+            grid-template-columns: 1fr;
+        }
+
+
+        .chart-section,
+        .vote-breakdown {
+            padding: 18px;
+        }
+
+
+        .chart-box {
+            height: 280px;
+        }
+
+
+        .results-actions {
+            flex-direction: column;
+        }
+
+
+        .results-actions .btn {
+            width: 100%;
+        }
+
+    }
+
+</style>
+
+
+{% block scripts %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+<script>
+
+    const resultLabels = [
+        {% for result in results %}
+            {{ result[0] | tojson }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+
+    const resultVotes = [
+        {% for result in results %}
+            {{ result[1] }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+
+    const chartColors = [
+        "#2563eb",
+        "#16a34a",
+        "#f59e0b",
+        "#7c3aed",
+        "#ec4899",
+        "#0891b2",
+        "#dc2626",
+        "#65a30d",
+        "#ea580c",
+        "#9333ea"
+    ];
+
+
+    const chartCanvas = document.getElementById("resultsChart");
+
+
+    if (chartCanvas && resultLabels.length > 0) {
+
+        new Chart(chartCanvas, {
+
+            type: "bar",
+
+            data: {
+
+                labels: resultLabels,
+
+                datasets: [
+
+                    {
+                        label: "Votes",
+
+                        data: resultVotes,
+
+                        backgroundColor: resultLabels.map(
+                            (label, index) => chartColors[index % chartColors.length]
+                        ),
+
+                        borderColor: resultLabels.map(
+                            (label, index) => chartColors[index % chartColors.length]
+                        ),
+
+                        borderWidth: 1,
+
+                        borderRadius: 6,
+
+                        hoverBorderWidth: 2
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+                            precision: 0
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+
+        const progressBars = document.querySelectorAll(".progress-fill");
+
+
+        progressBars.forEach((bar, index) => {
+
+            bar.style.backgroundColor =
+                chartColors[index % chartColors.length];
+
+        });
+
+    }
+
+</script>
+
+{% endblock %}
 
 {% endblock %}

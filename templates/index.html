@@ -1,79 +1,336 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Online Poll & Voting System{% endblock %}
-
-{% block nav %}
-<a href="/user-login">User Login</a>
-<a href="/admin-login">Admin Login</a>
-{% endblock %}
+{% block title %}Home - Online Poll and Voting System{% endblock %}
 
 {% block content %}
 
-<section class="hero">
+<section class="hero-section">
 
-    <div class="hero-icon">🗳️</div>
+    <div class="hero-content">
 
-    <h1>Online Poll & Voting System</h1>
+        <span class="hero-badge">🗳️ Online Poll & Voting System</span>
 
-    <p class="hero-description">
-        A simple and secure platform for creating polls,
-        participating in online voting, and viewing graphical
-        results instantly.
-    </p>
+        <h1>
+            Your Voice.
+            <span>Your Vote.</span>
+            Your Choice.
+        </h1>
 
-    <div class="login-options">
+        <p>
+            Participate in online polls, cast your vote securely,
+            and explore graphical results in a simple and user-friendly
+            voting platform.
+        </p>
 
-        <div class="card login-choice">
-            <div class="choice-icon">👤</div>
-            <h2>User</h2>
-            <p>
-                Participate in polls, submit your vote,
-                and view voting results.
-            </p>
-            <a href="/user-login" class="btn btn-primary full-width">
-                User Login
+        <div class="hero-buttons">
+
+            <a href="/user-login" class="btn btn-primary">
+                🗳️ Start Voting
             </a>
+
+            <a href="/register" class="btn btn-secondary">
+                👤 Create Account
+            </a>
+
         </div>
 
-        <div class="card login-choice">
-            <div class="choice-icon">👨‍💼</div>
-            <h2>Administrator</h2>
-            <p>
-                Create and manage polls, monitor votes,
-                and analyze results.
-            </p>
-            <a href="/admin-login" class="btn btn-admin full-width">
-                Admin Login
-            </a>
-        </div>
-
-    </div>
-
-    <div class="small-link">
-        New user?
-        <a href="/register">Create an Account</a>
     </div>
 
 </section>
 
-<section class="features">
 
-    <div class="card feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Secure Voting</h3>
-        <p>Each registered user can vote only once in a poll.</p>
+<section class="info-section">
+
+    <div class="section-heading">
+
+        <span>HOW IT WORKS</span>
+
+        <h2>
+            Simple, Fast & Easy Voting
+        </h2>
+
+        <p>
+            Follow three simple steps to participate in an online poll.
+        </p>
+
     </div>
 
-    <div class="card feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Graphical Results</h3>
-        <p>View voting results using interactive bar and pie charts.</p>
+
+    <div class="info-grid">
+
+        <div class="info-card">
+
+            <div class="info-icon">
+                👤
+            </div>
+
+            <h3>1. Register</h3>
+
+            <p>
+                Create your account using your name, email address
+                and password.
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <div class="info-icon">
+                🗳️
+            </div>
+
+            <h3>2. Cast Your Vote</h3>
+
+            <p>
+                Login to your account, choose an active poll and
+                select your preferred option.
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <div class="info-icon">
+                📊
+            </div>
+
+            <h3>3. View Results</h3>
+
+            <p>
+                View automatically calculated voting results using
+                easy-to-understand graphical charts.
+            </p>
+
+        </div>
+
     </div>
 
-    <div class="card feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Instant Results</h3>
-        <p>Vote counts are automatically updated after voting.</p>
+</section>
+
+
+<section class="features-section">
+
+    <div class="section-heading">
+
+        <span>FEATURES</span>
+
+        <h2>
+            Everything You Need for Online Voting
+        </h2>
+
+    </div>
+
+
+    <div class="feature-grid">
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🔐
+            </div>
+
+            <div>
+
+                <h3>Secure Login</h3>
+
+                <p>
+                    User and administrator accounts are separated
+                    for better access control.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                ✅
+            </div>
+
+            <div>
+
+                <h3>One Vote Per Poll</h3>
+
+                <p>
+                    The system prevents a user from voting multiple
+                    times in the same poll.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📈
+            </div>
+
+            <div>
+
+                <h3>Graphical Results</h3>
+
+                <p>
+                    Voting results are presented through clear
+                    graphical charts for easy analysis.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                ⚡
+            </div>
+
+            <div>
+
+                <h3>Automatic Counting</h3>
+
+                <p>
+                    Votes are counted automatically as users
+                    participate in polls.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📱
+            </div>
+
+            <div>
+
+                <h3>User-Friendly</h3>
+
+                <p>
+                    A simple interface makes the system easy to use
+                    on different devices.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                ⚙️
+            </div>
+
+            <div>
+
+                <h3>Admin Control</h3>
+
+                <p>
+                    Administrators can create, edit, manage and
+                    monitor polls.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="about-section">
+
+    <div class="about-content">
+
+        <div class="about-text">
+
+            <span>ABOUT THE SYSTEM</span>
+
+            <h2>
+                Making Online Polling Simple
+            </h2>
+
+            <p>
+                The Online Poll and Voting System is a web-based
+                application designed to make polling and voting
+                easier, faster and more organized.
+            </p>
+
+            <p>
+                Registered users can participate in active polls,
+                while administrators can manage polls and monitor
+                voting activity.
+            </p>
+
+            <p>
+                The system also provides graphical result analysis,
+                allowing users to understand voting outcomes quickly.
+            </p>
+
+        </div>
+
+
+        <div class="about-points">
+
+            <div class="about-point">
+                <span>✓</span>
+                <p>Easy online voting</p>
+            </div>
+
+            <div class="about-point">
+                <span>✓</span>
+                <p>Automatic vote counting</p>
+            </div>
+
+            <div class="about-point">
+                <span>✓</span>
+                <p>Graphical result analysis</p>
+            </div>
+
+            <div class="about-point">
+                <span>✓</span>
+                <p>Admin poll management</p>
+            </div>
+
+            <div class="about-point">
+                <span>✓</span>
+                <p>Duplicate vote prevention</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="cta-section">
+
+    <div class="cta-content">
+
+        <h2>
+            Ready to Make Your Choice?
+        </h2>
+
+        <p>
+            Login to your account and participate in available polls.
+        </p>
+
+        <a href="/user-login" class="btn btn-primary">
+            🗳️ Vote Now
+        </a>
+
     </div>
 
 </section>

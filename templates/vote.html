@@ -1,55 +1,428 @@
 {% extends "base.html" %}
 
-{% block title %}Vote - Online Poll{% endblock %}
-
-{% block nav %}
-<a href="/polls">Polls</a>
-<a href="/logout">Logout</a>
-{% endblock %}
+{% block title %}Vote - Online Poll and Voting System{% endblock %}
 
 {% block content %}
 
-<div class="card vote-card">
+<section class="vote-page">
 
     <div class="vote-header">
-        <div class="icon">🗳️</div>
+
+        <span class="page-label">VOTING CENTER</span>
+
         <h1>Cast Your Vote</h1>
-        <div class="vote-question">{{ poll[1] }}</div>
-        <div class="vote-description">{{ poll[2] }}</div>
+
+        <p>
+            Select one option below and submit your vote.
+        </p>
+
     </div>
 
-    <form method="POST">
 
-        <div class="option-list">
+    <div class="vote-container">
 
-            {% for option in options %}
+        <div class="vote-info">
 
-            <label class="option-label">
-                <input
-                    type="radio"
-                    name="option_id"
-                    value="{{ option[0] }}"
-                    required
-                >
-                <span class="option-text">
-                    {{ option[2] }}
-                </span>
-            </label>
+            <span class="vote-status">
+                🟢 Active Poll
+            </span>
 
-            {% endfor %}
+            <h2>
+                {{ poll[1] }}
+            </h2>
+
+            {% if poll[2] %}
+
+                <p class="vote-description">
+                    {{ poll[2] }}
+                </p>
+
+            {% endif %}
 
         </div>
 
-        <button type="submit" class="btn btn-primary full-width">
-            🗳️ Submit Vote
-        </button>
 
-    </form>
+        <div class="voting-instructions">
 
-    <a href="/polls" class="back-link">
-        ⬅️ Back to Polls
-    </a>
+            <strong>📝 How to vote</strong>
 
-</div>
+            <p>
+                Choose one option and click the
+                <strong>Submit Vote</strong> button.
+                You can vote only once in this poll.
+            </p>
+
+        </div>
+
+
+        {% if error %}
+
+            <div class="vote-error">
+                ⚠️ {{ error }}
+            </div>
+
+        {% endif %}
+
+
+        <form method="POST" action="/vote/{{ poll[0] }}">
+
+            <div class="options-title">
+                Select your option
+            </div>
+
+
+            <div class="vote-options">
+
+                {% for option in options %}
+
+                    <label
+                        class="vote-option"
+                        for="option-{{ option[0] }}"
+                    >
+
+                        <input
+                            type="radio"
+                            id="option-{{ option[0] }}"
+                            name="option_id"
+                            value="{{ option[0] }}"
+                            required
+                        >
+
+                        <span class="custom-radio"></span>
+
+                        <span class="option-text">
+                            {{ option[2] }}
+                        </span>
+
+                    </label>
+
+                {% endfor %}
+
+            </div>
+
+
+            <div class="vote-actions">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary submit-vote-btn"
+                >
+                    🗳️ Submit Vote
+                </button>
+
+                <a
+                    href="/polls"
+                    class="btn btn-secondary"
+                >
+                    ← Back to Polls
+                </a>
+
+            </div>
+
+        </form>
+
+
+        <div class="vote-security">
+
+            <span>🔐</span>
+
+            <div>
+                <strong>Your vote matters</strong>
+
+                <p>
+                    The system allows only one vote per user
+                    for each poll.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<style>
+
+    .vote-page {
+        width: 90%;
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 55px 0 80px;
+    }
+
+
+    .vote-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+
+    .page-label {
+        color: #2563eb;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+    }
+
+
+    .vote-header h1 {
+        margin-top: 8px;
+        font-size: 38px;
+        color: #0f172a;
+    }
+
+
+    .vote-header p {
+        margin-top: 8px;
+        color: #64748b;
+        font-size: 16px;
+    }
+
+
+    .vote-container {
+        width: 100%;
+        max-width: 750px;
+        margin: auto;
+        padding: 35px;
+        background: #ffffff;
+        border: 1px solid #dbe3ee;
+        border-radius: 16px;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.07);
+    }
+
+
+    .vote-info {
+        padding-bottom: 25px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+
+    .vote-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        margin-bottom: 17px;
+        background: #dcfce7;
+        color: #166534;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+
+    .vote-info h2 {
+        color: #172033;
+        font-size: 25px;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+
+
+    .vote-description {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+
+    .voting-instructions {
+        margin: 25px 0;
+        padding: 17px 18px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+    }
+
+
+    .voting-instructions strong {
+        color: #1e40af;
+    }
+
+
+    .voting-instructions p {
+        margin-top: 5px;
+        color: #475569;
+        font-size: 14px;
+    }
+
+
+    .vote-error {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        border-radius: 9px;
+        color: #991b1b;
+        font-size: 14px;
+    }
+
+
+    .options-title {
+        margin-bottom: 13px;
+        color: #172033;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+
+    .vote-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+
+    .vote-option {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 17px;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+
+    .vote-option:hover {
+        background: #eff6ff;
+        border-color: #60a5fa;
+        transform: translateX(2px);
+    }
+
+
+    .vote-option input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+
+    .custom-radio {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        border: 2px solid #94a3b8;
+        border-radius: 50%;
+        position: relative;
+        transition: 0.2s ease;
+    }
+
+
+    .vote-option input:checked + .custom-radio {
+        border-color: #2563eb;
+    }
+
+
+    .vote-option input:checked + .custom-radio::after {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #2563eb;
+        border-radius: 50%;
+    }
+
+
+    .vote-option:has(input:checked) {
+        background: #eff6ff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px #dbeafe;
+    }
+
+
+    .option-text {
+        color: #334155;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+
+    .vote-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+    }
+
+
+    .submit-vote-btn {
+        min-width: 160px;
+    }
+
+
+    .vote-security {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-top: 30px;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+    }
+
+
+    .vote-security > span {
+        font-size: 22px;
+    }
+
+
+    .vote-security strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #334155;
+        font-size: 14px;
+    }
+
+
+    .vote-security p {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+
+    @media (max-width: 600px) {
+
+        .vote-page {
+            padding: 40px 0 60px;
+        }
+
+
+        .vote-header h1 {
+            font-size: 30px;
+        }
+
+
+        .vote-container {
+            padding: 25px 20px;
+        }
+
+
+        .vote-info h2 {
+            font-size: 21px;
+        }
+
+
+        .vote-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+
+        .vote-actions .btn {
+            width: 100%;
+        }
+
+    }
+
+</style>
 
 {% endblock %}

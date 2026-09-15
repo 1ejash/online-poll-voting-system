@@ -1,19 +1,64 @@
 import os
-from flask import Flask, render_template, request, session, redirect
+
+from flask import Flask, render_template, request, session, redirect, url_for
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
+from authlib.integrations.flask_client import OAuth
+
 
 app = Flask(__name__, template_folder="templates")
 
-app.secret_key = os.getenv("SECRET_KEY", "online_poll_secret_key")
+app.secret_key = os.getenv(
+    "SECRET_KEY",
+    "online_poll_secret_key"
+)
 
-app.config["MYSQL_HOST"] = os.getenv("MYSQLHOST", "localhost")
-app.config["MYSQL_PORT"] = int(os.getenv("MYSQLPORT", "3306"))
-app.config["MYSQL_USER"] = os.getenv("MYSQLUSER", "root")
-app.config["MYSQL_PASSWORD"] = os.getenv("MYSQLPASSWORD", "")
-app.config["MYSQL_DB"] = os.getenv("MYSQLDATABASE", "online_poll_db")
+
+app.config["MYSQL_HOST"] = os.getenv(
+    "MYSQLHOST",
+    "localhost"
+)
+
+app.config["MYSQL_PORT"] = int(
+    os.getenv("MYSQLPORT", "3306")
+)
+
+app.config["MYSQL_USER"] = os.getenv(
+    "MYSQLUSER",
+    "root"
+)
+
+app.config["MYSQL_PASSWORD"] = os.getenv(
+    "MYSQLPASSWORD",
+    ""
+)
+
+app.config["MYSQL_DB"] = os.getenv(
+    "MYSQLDATABASE",
+    "online_poll_db"
+)
+
 
 mysql = MySQL(app)
+
+
+oauth = OAuth(app)
+
+google = oauth.register(
+    name="google",
+    client_id=os.getenv(
+        "GOOGLE_CLIENT_ID",
+        "357512431894-9p5rgsve8khrtitknkl1ghlg8c4bu99r.apps.googleusercontent.com"
+    ),
+    client_secret=os.getenv(
+        "GOOGLE_CLIENT_SECRET",
+        ""
+    ),
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={
+        "scope": "openid email profile"
+    }
+)
 
 
 @app.route("/")
@@ -21,60 +66,18 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register")
 def register():
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-
-        if not name or not email or not password:
-            return render_template(
-                "register.html",
-                error="All fields are required."
-            )
-
-        cursor = mysql.connection.cursor()
-
-        cursor.execute(
-            "SELECT id FROM users WHERE email=%s",
-            (email,)
-        )
-
-        existing_user = cursor.fetchone()
-
-        if existing_user:
-            cursor.close()
-
-            return render_template(
-                "register.html",
-                error="Email already registered."
-            )
-
-        hashed_password = generate_password_hash(password)
-
-        cursor.execute(
-            """
-            INSERT INTO users
-            (name, email, password, role)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (name, email, hashed_password, "user")
-        )
-
-        mysql.connection.commit()
-        cursor.close()
-
-        return redirect("/user-login")
-
-    return render_template("register.html")
+    return redirect(url_for("google_login"))
 
 
 @app.route("/user-login", methods=["GET", "POST"])
 def user_login():
+
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
+
+        email = request.form["email"].strip().lower()
+        password = request.form["password"]
 
         cursor = mysql.connection.cursor()
 
@@ -82,8 +85,7 @@ def user_login():
             """
             SELECT *
             FROM users
-            WHERE email=%s
-            AND role='user'
+            WHERE email=%s AND role='user'
             """,
             (email,)
         )
@@ -92,7 +94,11 @@ def user_login():
 
         cursor.close()
 
-        if user and check_password_hash(user[3], password):
+        if user and user[3] and check_password_hash(
+            user[3],
+            password
+        ):
+
             session["user_id"] = user[0]
             session["user_name"] = user[1]
             session["user_role"] = "user"
@@ -101,17 +107,59 @@ def user_login():
 
         return render_template(
             "user_login.html",
-            error="Invalid email or password."
+            error="Invalid user email or password. Please use Google Login."
         )
 
     return render_template("user_login.html")
 
 
-@app.route("/admin-login", methods=["GET", "POST"])
-def admin_login():
-    if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
+@app.route("/auth/google")
+def google_login():
+
+    redirect_uri = url_for(
+        "google_callback",
+        _external=True
+    )
+
+    return google.authorize_redirect(
+        redirect_uri
+    )
+
+
+@app.route("/auth/google/callback")
+def google_callback():
+
+    try:
+
+        token = google.authorize_access_token()
+
+        user_info = token.get("userinfo")
+
+        if not user_info:
+            user_info = google.userinfo()
+
+        google_id = user_info.get("sub")
+        email = user_info.get("email")
+        name = user_info.get("name")
+
+        email_verified = user_info.get(
+            "email_verified",
+            False
+        )
+
+        if not email or not email_verified:
+            return render_template(
+                "user_login.html",
+                error="Google email could not be verified."
+            )
+
+        email = email.lower()
+
+        if not email.endswith("@gmail.com"):
+            return render_template(
+                "user_login.html",
+                error="Please use a Gmail account."
+            )
 
         cursor = mysql.connection.cursor()
 
@@ -119,8 +167,104 @@ def admin_login():
             """
             SELECT *
             FROM users
-            WHERE email=%s
-            AND role='admin'
+            WHERE google_id=%s
+            """,
+            (google_id,)
+        )
+
+        user = cursor.fetchone()
+
+        if not user:
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM users
+                WHERE email=%s
+                """,
+                (email,)
+            )
+
+            user = cursor.fetchone()
+
+        if user:
+
+            cursor.execute(
+                """
+                UPDATE users
+                SET google_id=%s
+                WHERE id=%s
+                """,
+                (
+                    google_id,
+                    user[0]
+                )
+            )
+
+            mysql.connection.commit()
+
+        else:
+
+            cursor.execute(
+                """
+                INSERT INTO users
+                (name, email, password, role, google_id)
+                VALUES (%s, %s, %s, 'user', %s)
+                """,
+                (
+                    name,
+                    email,
+                    "",
+                    google_id
+                )
+            )
+
+            mysql.connection.commit()
+
+            new_user_id = cursor.lastrowid
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM users
+                WHERE id=%s
+                """,
+                (new_user_id,)
+            )
+
+            user = cursor.fetchone()
+
+        cursor.close()
+
+        session["user_id"] = user[0]
+        session["user_name"] = user[1]
+        session["user_role"] = user[4]
+
+        return redirect("/polls")
+
+    except Exception:
+
+        return render_template(
+            "user_login.html",
+            error="Google login failed. Please try again."
+        )
+
+
+@app.route("/admin-login", methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+
+        email = request.form["email"].strip().lower()
+        password = request.form["password"]
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email=%s AND role='admin'
             """,
             (email,)
         )
@@ -129,10 +273,11 @@ def admin_login():
 
         cursor.close()
 
-        if admin_user and check_password_hash(
+        if admin_user and admin_user[3] and check_password_hash(
             admin_user[3],
             password
         ):
+
             session["user_id"] = admin_user[0]
             session["user_name"] = admin_user[1]
             session["user_role"] = "admin"
@@ -154,6 +299,7 @@ def login():
 
 @app.route("/logout")
 def logout():
+
     session.clear()
 
     return redirect("/")
@@ -161,10 +307,11 @@ def logout():
 
 @app.route("/polls")
 def polls():
+
     if "user_id" not in session:
         return redirect("/user-login")
 
-    if session.get("user_role") == "admin":
+    if session["user_role"] == "admin":
         return redirect("/admin")
 
     user_id = session["user_id"]
@@ -184,30 +331,31 @@ def polls():
             END AS already_voted
         FROM polls
         LEFT JOIN votes
-            ON polls.id = votes.poll_id
-            AND votes.user_id = %s
-        WHERE polls.status = 'active'
+        ON polls.id = votes.poll_id
+        AND votes.user_id = %s
+        WHERE polls.status='active'
         ORDER BY polls.id DESC
         """,
         (user_id,)
     )
 
-    polls_data = cursor.fetchall()
+    poll_list = cursor.fetchall()
 
     cursor.close()
 
     return render_template(
         "polls.html",
-        polls=polls_data
+        polls=poll_list
     )
 
 
 @app.route("/vote/<int:poll_id>", methods=["GET", "POST"])
 def vote(poll_id):
+
     if "user_id" not in session:
         return redirect("/user-login")
 
-    if session.get("user_role") == "admin":
+    if session["user_role"] == "admin":
         return redirect("/admin")
 
     user_id = session["user_id"]
@@ -216,10 +364,9 @@ def vote(poll_id):
 
     cursor.execute(
         """
-        SELECT *
+        SELECT id, question, description
         FROM polls
-        WHERE id=%s
-        AND status='active'
+        WHERE id=%s AND status='active'
         """,
         (poll_id,)
     )
@@ -227,33 +374,36 @@ def vote(poll_id):
     poll = cursor.fetchone()
 
     if not poll:
+
         cursor.close()
 
-        return redirect("/polls")
+        return "Poll not found or poll is closed!", 404
 
     cursor.execute(
         """
         SELECT id
         FROM votes
-        WHERE user_id=%s
-        AND poll_id=%s
+        WHERE user_id=%s AND poll_id=%s
         """,
-        (user_id, poll_id)
+        (
+            user_id,
+            poll_id
+        )
     )
 
     existing_vote = cursor.fetchone()
 
-    if request.method == "GET" and existing_vote:
+    if existing_vote:
+
         cursor.close()
 
-        return redirect(f"/results/{poll_id}")
+        return redirect(
+            "/results/" + str(poll_id)
+        )
 
     cursor.execute(
         """
-        SELECT
-            id,
-            poll_id,
-            option_text
+        SELECT id, poll_id, option_text
         FROM poll_options
         WHERE poll_id=%s
         ORDER BY id
@@ -264,46 +414,47 @@ def vote(poll_id):
     options = cursor.fetchall()
 
     if request.method == "POST":
+
         option_id = request.form.get("option_id")
 
-        if existing_vote:
-            cursor.close()
-
-            return redirect(f"/results/{poll_id}")
-
         if not option_id:
+
             cursor.close()
 
             return render_template(
                 "vote.html",
                 poll=poll,
                 options=options,
-                error="Please select an option."
+                error="Please select an option before submitting your vote."
             )
 
         cursor.execute(
             """
             SELECT id
             FROM poll_options
-            WHERE id=%s
-            AND poll_id=%s
+            WHERE id=%s AND poll_id=%s
             """,
-            (option_id, poll_id)
+            (
+                option_id,
+                poll_id
+            )
         )
 
         valid_option = cursor.fetchone()
 
         if not valid_option:
+
             cursor.close()
 
             return render_template(
                 "vote.html",
                 poll=poll,
                 options=options,
-                error="Invalid option selected."
+                error="Invalid voting option."
             )
 
         try:
+
             cursor.execute(
                 """
                 INSERT INTO votes
@@ -320,14 +471,19 @@ def vote(poll_id):
             mysql.connection.commit()
 
         except Exception:
+
             mysql.connection.rollback()
             cursor.close()
 
-            return redirect(f"/results/{poll_id}")
+            return redirect(
+                "/results/" + str(poll_id)
+            )
 
         cursor.close()
 
-        return redirect(f"/results/{poll_id}")
+        return redirect(
+            "/results/" + str(poll_id)
+        )
 
     cursor.close()
 
@@ -340,16 +496,31 @@ def vote(poll_id):
 
 @app.route("/results/<int:poll_id>")
 def results(poll_id):
-    if "user_id" not in session:
-        return redirect("/user-login")
 
-    cursor = mysql.connection.cursor()
+    cur = mysql.connection.cursor()
 
-    cursor.execute(
+    cur.execute(
+        """
+        SELECT id, question, description, status
+        FROM polls
+        WHERE id=%s
+        """,
+        (poll_id,)
+    )
+
+    poll = cur.fetchone()
+
+    if not poll:
+
+        cur.close()
+
+        return "Poll not found", 404
+
+    cur.execute(
         """
         SELECT
             poll_options.option_text,
-            COUNT(votes.id) AS vote_count
+            COUNT(votes.id)
         FROM poll_options
         LEFT JOIN votes
             ON poll_options.id = votes.option_id
@@ -362,23 +533,9 @@ def results(poll_id):
         (poll_id,)
     )
 
-    results_data = cursor.fetchall()
+    results_data = cur.fetchall()
 
-    cursor.execute(
-        """
-        SELECT *
-        FROM polls
-        WHERE id=%s
-        """,
-        (poll_id,)
-    )
-
-    poll = cursor.fetchone()
-
-    cursor.close()
-
-    if not poll:
-        return redirect("/polls")
+    cur.close()
 
     return render_template(
         "results.html",
@@ -389,58 +546,41 @@ def results(poll_id):
 
 @app.route("/admin")
 def admin():
+
     if "user_id" not in session:
         return redirect("/admin-login")
 
-    if session.get("user_role") != "admin":
+    if session["user_role"] != "admin":
         return redirect("/polls")
 
     cursor = mysql.connection.cursor()
 
     cursor.execute(
-        """
-        SELECT *
-        FROM polls
-        ORDER BY id DESC
-        """
+        "SELECT * FROM polls ORDER BY id DESC"
     )
 
-    polls_data = cursor.fetchall()
+    poll_list = cursor.fetchall()
 
     cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM users
-        WHERE role='user'
-        """
+        "SELECT COUNT(*) FROM users WHERE role='user'"
     )
 
     total_users = cursor.fetchone()[0]
 
     cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM polls
-        """
+        "SELECT COUNT(*) FROM polls"
     )
 
     total_polls = cursor.fetchone()[0]
 
     cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM votes
-        """
+        "SELECT COUNT(*) FROM votes"
     )
 
     total_votes = cursor.fetchone()[0]
 
     cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM polls
-        WHERE status='active'
-        """
+        "SELECT COUNT(*) FROM polls WHERE status='active'"
     )
 
     active_polls = cursor.fetchone()[0]
@@ -449,7 +589,7 @@ def admin():
 
     return render_template(
         "dashboard.html",
-        polls=polls_data,
+        polls=poll_list,
         total_users=total_users,
         total_polls=total_polls,
         total_votes=total_votes,
@@ -457,157 +597,29 @@ def admin():
     )
 
 
-@app.route("/admin/voters")
-def voters():
-    if "user_id" not in session:
-        return redirect("/admin-login")
-
-    if session.get("user_role") != "admin":
-        return redirect("/polls")
-
-    search = request.args.get(
-        "search",
-        ""
-    ).strip()
-
-    cursor = mysql.connection.cursor()
-
-    if search:
-        search_value = "%" + search + "%"
-
-        cursor.execute(
-            """
-            SELECT
-                users.id,
-                users.name,
-                users.email,
-                polls.question,
-                poll_options.option_text,
-                votes.voted_at
-            FROM votes
-
-            INNER JOIN users
-                ON votes.user_id = users.id
-
-            INNER JOIN polls
-                ON votes.poll_id = polls.id
-
-            INNER JOIN poll_options
-                ON votes.option_id = poll_options.id
-
-            WHERE users.role='user'
-            AND (
-                users.name LIKE %s
-                OR users.email LIKE %s
-            )
-
-            ORDER BY votes.voted_at DESC
-            """,
-            (
-                search_value,
-                search_value
-            )
-        )
-
-    else:
-        cursor.execute(
-            """
-            SELECT
-                users.id,
-                users.name,
-                users.email,
-                polls.question,
-                poll_options.option_text,
-                votes.voted_at
-            FROM votes
-
-            INNER JOIN users
-                ON votes.user_id = users.id
-
-            INNER JOIN polls
-                ON votes.poll_id = polls.id
-
-            INNER JOIN poll_options
-                ON votes.option_id = poll_options.id
-
-            WHERE users.role='user'
-
-            ORDER BY votes.voted_at DESC
-            """
-        )
-
-    voters_data = cursor.fetchall()
-
-    cursor.close()
-
-    return render_template(
-        "voters.html",
-        voters=voters_data,
-        search=search
-    )
-
-
-@app.route(
-    "/admin/create-poll",
-    methods=["GET", "POST"]
-)
+@app.route("/admin/create-poll", methods=["GET", "POST"])
 def create_poll():
+
     if "user_id" not in session:
         return redirect("/admin-login")
 
-    if session.get("user_role") != "admin":
+    if session["user_role"] != "admin":
         return redirect("/polls")
 
     if request.method == "POST":
 
-        question = request.form.get(
-            "question",
-            ""
-        ).strip()
+        question = request.form["question"].strip()
 
-        description = request.form.get(
-            "description",
-            ""
-        ).strip()
-
-        option1 = request.form.get(
-            "option1",
-            ""
-        ).strip()
-
-        option2 = request.form.get(
-            "option2",
-            ""
-        ).strip()
-
-        option3 = request.form.get(
-            "option3",
-            ""
-        ).strip()
-
-        option4 = request.form.get(
-            "option4",
-            ""
-        ).strip()
-
-        if not question:
-            return render_template(
-                "create_poll.html",
-                error="Poll question is required."
-            )
+        description = request.form[
+            "description"
+        ].strip()
 
         options = [
-            option1,
-            option2,
-            option3,
-            option4
+            request.form["option1"].strip(),
+            request.form["option2"].strip(),
+            request.form["option3"].strip(),
+            request.form["option4"].strip()
         ]
-
-        if any(not option for option in options):
-            return render_template(
-                "create_poll.html",
-                error="All four options are required."
-            )
 
         cursor = mysql.connection.cursor()
 
@@ -615,30 +627,37 @@ def create_poll():
             """
             INSERT INTO polls
             (question, description, status)
-            VALUES (%s, %s, %s)
+            VALUES (%s, %s, 'active')
             """,
             (
                 question,
-                description,
-                "active"
+                description
             )
         )
 
         poll_id = cursor.lastrowid
 
-        for option in options:
-
-            cursor.execute(
-                """
-                INSERT INTO poll_options
-                (poll_id, option_text)
-                VALUES (%s, %s)
-                """,
-                (
-                    poll_id,
-                    option
-                )
+        cursor.execute(
+            """
+            INSERT INTO poll_options
+            (poll_id, option_text)
+            VALUES
+            (%s, %s),
+            (%s, %s),
+            (%s, %s),
+            (%s, %s)
+            """,
+            (
+                poll_id,
+                options[0],
+                poll_id,
+                options[1],
+                poll_id,
+                options[2],
+                poll_id,
+                options[3]
             )
+        )
 
         mysql.connection.commit()
 
@@ -646,7 +665,9 @@ def create_poll():
 
         return redirect("/admin")
 
-    return render_template("create_poll.html")
+    return render_template(
+        "create_poll.html"
+    )
 
 
 @app.route(
@@ -654,35 +675,31 @@ def create_poll():
     methods=["GET", "POST"]
 )
 def edit_poll(poll_id):
+
     if "user_id" not in session:
         return redirect("/admin-login")
 
-    if session.get("user_role") != "admin":
+    if session["user_role"] != "admin":
         return redirect("/polls")
 
     cursor = mysql.connection.cursor()
 
     cursor.execute(
-        """
-        SELECT *
-        FROM polls
-        WHERE id=%s
-        """,
+        "SELECT * FROM polls WHERE id=%s",
         (poll_id,)
     )
 
     poll = cursor.fetchone()
 
     if not poll:
+
         cursor.close()
 
-        return redirect("/admin")
+        return "Poll not found!", 404
 
     cursor.execute(
         """
-        SELECT
-            id,
-            option_text
+        SELECT id, option_text
         FROM poll_options
         WHERE poll_id=%s
         ORDER BY id
@@ -694,74 +711,30 @@ def edit_poll(poll_id):
 
     if request.method == "POST":
 
-        question = request.form.get(
-            "question",
-            ""
-        ).strip()
+        question = request.form[
+            "question"
+        ].strip()
 
-        description = request.form.get(
-            "description",
-            ""
-        ).strip()
+        description = request.form[
+            "description"
+        ].strip()
 
-        status = request.form.get(
-            "status",
-            "active"
-        ).strip()
-
-        option1 = request.form.get(
-            "option1",
-            ""
-        ).strip()
-
-        option2 = request.form.get(
-            "option2",
-            ""
-        ).strip()
-
-        option3 = request.form.get(
-            "option3",
-            ""
-        ).strip()
-
-        option4 = request.form.get(
-            "option4",
-            ""
-        ).strip()
-
-        new_options = [
-            option1,
-            option2,
-            option3,
-            option4
+        status = request.form[
+            "status"
         ]
 
-        if not question:
-
-            cursor.close()
-
-            return render_template(
-                "edit_poll.html",
-                poll=poll,
-                options=options,
-                error="Poll question is required."
-            )
-
-        if any(not option for option in new_options):
-
-            cursor.close()
-
-            return render_template(
-                "edit_poll.html",
-                poll=poll,
-                options=options,
-                error="All four options are required."
-            )
+        option_values = [
+            request.form["option1"].strip(),
+            request.form["option2"].strip(),
+            request.form["option3"].strip(),
+            request.form["option4"].strip()
+        ]
 
         cursor.execute(
             """
             UPDATE polls
-            SET question=%s,
+            SET
+                question=%s,
                 description=%s,
                 status=%s
             WHERE id=%s
@@ -774,37 +747,20 @@ def edit_poll(poll_id):
             )
         )
 
-        for index, option in enumerate(new_options):
+        for index in range(4):
 
-            if index < len(options):
-
-                option_id = options[index][0]
-
-                cursor.execute(
-                    """
-                    UPDATE poll_options
-                    SET option_text=%s
-                    WHERE id=%s
-                    """,
-                    (
-                        option,
-                        option_id
-                    )
+            cursor.execute(
+                """
+                UPDATE poll_options
+                SET option_text=%s
+                WHERE id=%s AND poll_id=%s
+                """,
+                (
+                    option_values[index],
+                    options[index][0],
+                    poll_id
                 )
-
-            else:
-
-                cursor.execute(
-                    """
-                    INSERT INTO poll_options
-                    (poll_id, option_text)
-                    VALUES (%s, %s)
-                    """,
-                    (
-                        poll_id,
-                        option
-                    )
-                )
+            )
 
         mysql.connection.commit()
 
@@ -821,39 +777,29 @@ def edit_poll(poll_id):
     )
 
 
-@app.route(
-    "/admin/delete-poll/<int:poll_id>"
-)
+@app.route("/admin/delete-poll/<int:poll_id>")
 def delete_poll(poll_id):
+
     if "user_id" not in session:
         return redirect("/admin-login")
 
-    if session.get("user_role") != "admin":
+    if session["user_role"] != "admin":
         return redirect("/polls")
 
     cursor = mysql.connection.cursor()
 
     cursor.execute(
-        """
-        DELETE FROM votes
-        WHERE poll_id=%s
-        """,
+        "DELETE FROM votes WHERE poll_id=%s",
         (poll_id,)
     )
 
     cursor.execute(
-        """
-        DELETE FROM poll_options
-        WHERE poll_id=%s
-        """,
+        "DELETE FROM poll_options WHERE poll_id=%s",
         (poll_id,)
     )
 
     cursor.execute(
-        """
-        DELETE FROM polls
-        WHERE id=%s
-        """,
+        "DELETE FROM polls WHERE id=%s",
         (poll_id,)
     )
 
@@ -866,6 +812,7 @@ def delete_poll(poll_id):
 
 @app.route("/test-db")
 def test_db():
+
     try:
 
         cursor = mysql.connection.cursor()
@@ -876,15 +823,21 @@ def test_db():
 
         cursor.close()
 
-        if result:
-            return "Database connection successful."
-
-        return "Database connection failed."
+        return (
+            "Database connected successfully! "
+            "Result: " + str(result[0])
+        )
 
     except Exception as e:
 
-        return f"Database connection failed: {e}"
+        return (
+            "Database connection failed: "
+            + str(e)
+        )
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+
+    app.run(
+        debug=True
+    )

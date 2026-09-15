@@ -1,88 +1,433 @@
 {% extends "base.html" %}
 
-{% block title %}Available Polls - Online Poll{% endblock %}
-
-{% block nav %}
-<a href="/polls">Polls</a>
-<a href="/logout">Logout</a>
-{% endblock %}
+{% block title %}Polls - Online Poll and Voting System{% endblock %}
 
 {% block content %}
 
-<div class="page-container">
+<section class="polls-page">
 
-    <div class="page-header center">
-        <h1>🗳️ Available Polls</h1>
-        <p>Choose a poll and submit your vote</p>
+    <div class="polls-header">
+
+        <div>
+            <span class="page-label">VOTING CENTER</span>
+
+            <h1>Available Polls</h1>
+
+            <p>
+                Choose a poll, cast your vote, and view the latest results.
+            </p>
+        </div>
+
     </div>
+
+
+    <div class="poll-search">
+
+        <input
+            type="text"
+            id="pollSearch"
+            placeholder="🔎 Search polls..."
+            onkeyup="searchPolls()"
+        >
+
+    </div>
+
 
     {% if polls %}
 
-    <div class="poll-grid">
+        <div class="poll-grid" id="pollGrid">
 
-        {% for poll in polls %}
+            {% for poll in polls %}
 
-        <div class="card poll-card">
-
-            <span class="poll-status">🟢 Active</span>
-
-            <h2>{{ poll[1] }}</h2>
-
-            <p class="poll-description">
-                {{ poll[2] }}
-            </p>
-
-            <div class="poll-actions">
-
-                {% if poll[4] == 1 %}
-
-                <span class="voted-message">
-                    ✅ You have already voted
-                </span>
-
-                <a
-                    href="/results/{{ poll[0] }}"
-                    class="btn btn-secondary"
+                <div
+                    class="poll-card"
+                    data-poll-name="{{ poll[1] | lower }}"
                 >
-                    📊 Results
-                </a>
 
-                {% else %}
+                    <div class="poll-card-top">
 
-                <a
-                    href="/vote/{{ poll[0] }}"
-                    class="btn btn-primary"
-                >
-                    🗳️ Vote Now
-                </a>
+                        <span class="status status-active">
+                            🟢 Active
+                        </span>
 
-                <a
-                    href="/results/{{ poll[0] }}"
-                    class="btn btn-secondary"
-                >
-                    📊 Results
-                </a>
+                        {% if poll[4] %}
+                            <span class="voted-badge">
+                                ✓ Voted
+                            </span>
+                        {% endif %}
 
-                {% endif %}
+                    </div>
 
-            </div>
+
+                    <h2>
+                        {{ poll[1] }}
+                    </h2>
+
+
+                    {% if poll[2] %}
+
+                        <p class="poll-description">
+                            {{ poll[2] }}
+                        </p>
+
+                    {% else %}
+
+                        <p class="poll-description">
+                            Participate in this poll and make your choice.
+                        </p>
+
+                    {% endif %}
+
+
+                    <div class="poll-card-footer">
+
+                        {% if poll[4] %}
+
+                            <div class="poll-voted-message">
+                                ✓ You have already voted
+                            </div>
+
+                            <a
+                                href="/results/{{ poll[0] }}"
+                                class="btn btn-secondary"
+                            >
+                                📊 View Results
+                            </a>
+
+                        {% else %}
+
+                            <a
+                                href="/vote/{{ poll[0] }}"
+                                class="btn btn-primary"
+                            >
+                                🗳️ Vote Now
+                            </a>
+
+                            <a
+                                href="/results/{{ poll[0] }}"
+                                class="results-link"
+                            >
+                                📊 View Results
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
 
         </div>
 
-        {% endfor %}
 
-    </div>
+        <div
+            id="noPollsMessage"
+            class="no-polls-message"
+            style="display: none;"
+        >
+
+            <div class="no-polls-icon">
+                🔎
+            </div>
+
+            <h3>No polls found</h3>
+
+            <p>
+                Try searching with a different keyword.
+            </p>
+
+        </div>
 
     {% else %}
 
-    <div class="card no-polls">
-        <div class="empty-icon">📭</div>
-        <h2>No Active Polls</h2>
-        <p>There are currently no active polls available.</p>
-    </div>
+        <div class="empty-polls">
+
+            <div class="empty-polls-icon">
+                🗳️
+            </div>
+
+            <h2>No Active Polls</h2>
+
+            <p>
+                There are currently no active polls available.
+                Please check again later.
+            </p>
+
+        </div>
 
     {% endif %}
 
-</div>
+</section>
+
+
+<style>
+
+    .polls-page {
+        width: 90%;
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 55px 0 80px;
+    }
+
+    .polls-header {
+        margin-bottom: 30px;
+    }
+
+    .page-label {
+        color: #2563eb;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+    }
+
+    .polls-header h1 {
+        margin-top: 8px;
+        font-size: 38px;
+        color: #0f172a;
+    }
+
+    .polls-header p {
+        margin-top: 8px;
+        color: #64748b;
+        font-size: 16px;
+    }
+
+    .poll-search {
+        margin-bottom: 30px;
+    }
+
+    .poll-search input {
+        width: 100%;
+        max-width: 600px;
+        padding: 14px 18px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        outline: none;
+        background: #ffffff;
+        color: #172033;
+        font-size: 15px;
+        transition: 0.2s ease;
+    }
+
+    .poll-search input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px #dbeafe;
+    }
+
+    .poll-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+    }
+
+    .poll-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 300px;
+        padding: 25px;
+        background: #ffffff;
+        border: 1px solid #dbe3ee;
+        border-radius: 14px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04);
+        transition: 0.25s ease;
+    }
+
+    .poll-card:hover {
+        transform: translateY(-5px);
+        border-color: #93c5fd;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.09);
+    }
+
+    .poll-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .poll-card h2 {
+        color: #172033;
+        font-size: 21px;
+        line-height: 1.35;
+        margin-bottom: 12px;
+    }
+
+    .poll-description {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 20px;
+    }
+
+    .status {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 11px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .voted-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 11px;
+        background: #e0ecff;
+        color: #1e40af;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .poll-card-footer {
+        margin-top: auto;
+        padding-top: 18px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .poll-voted-message {
+        width: 100%;
+        margin-bottom: 5px;
+        color: #15803d;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .results-link {
+        color: #2563eb;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 10px 5px;
+    }
+
+    .results-link:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+    .empty-polls,
+    .no-polls-message {
+        text-align: center;
+        padding: 70px 25px;
+        background: #ffffff;
+        border: 1px solid #dbe3ee;
+        border-radius: 14px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .empty-polls-icon,
+    .no-polls-icon {
+        font-size: 45px;
+        margin-bottom: 15px;
+    }
+
+    .empty-polls h2,
+    .no-polls-message h3 {
+        color: #172033;
+        margin-bottom: 8px;
+    }
+
+    .empty-polls p,
+    .no-polls-message p {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+
+    @media (max-width: 900px) {
+
+        .poll-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+    }
+
+
+    @media (max-width: 600px) {
+
+        .polls-page {
+            padding: 40px 0 60px;
+        }
+
+        .polls-header h1 {
+            font-size: 30px;
+        }
+
+        .poll-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .poll-card {
+            min-height: auto;
+        }
+
+    }
+
+</style>
+
+
+<script>
+
+    function searchPolls() {
+
+        const searchInput =
+            document.getElementById("pollSearch");
+
+        const searchText =
+            searchInput.value.toLowerCase().trim();
+
+        const pollCards =
+            document.querySelectorAll(".poll-card");
+
+        const noPollsMessage =
+            document.getElementById("noPollsMessage");
+
+        let visiblePolls = 0;
+
+
+        pollCards.forEach(function(card) {
+
+            const pollName =
+                card.getAttribute("data-poll-name");
+
+            if (pollName.includes(searchText)) {
+
+                card.style.display = "";
+
+                visiblePolls++;
+
+            } else {
+
+                card.style.display = "none";
+
+            }
+
+        });
+
+
+        if (visiblePolls === 0) {
+
+            noPollsMessage.style.display = "block";
+
+        } else {
+
+            noPollsMessage.style.display = "none";
+
+        }
+
+    }
+
+</script>
 
 {% endblock %}

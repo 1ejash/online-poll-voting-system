@@ -2,28 +2,124 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Online Poll & Voting System{% endblock %}</title>
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <title>
+        {% block title %}Online Poll and Voting System{% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
 </head>
 
 <body>
 
-<nav class="navbar">
-    <div class="logo">🗳️ Online Poll</div>
+    <nav class="navbar">
 
-    <div class="nav-links">
-        {% block nav %}
-        <a href="/">Home</a>
+        <div class="navbar-container">
+
+            <a href="/" class="navbar-brand">
+                🗳️ Online Poll
+            </a>
+
+            <div class="navbar-menu">
+
+                <a href="/">
+                    🏠 Home
+                </a>
+
+                {% if session.get("user_id") %}
+
+                    {% if session.get("user_role") == "admin" %}
+
+                        <a href="/admin">
+                            📊 Dashboard
+                        </a>
+
+                        <a href="/admin/create-poll">
+                            ➕ Create Poll
+                        </a>
+
+                        <a href="/admin/voters">
+                            👥 Voters
+                        </a>
+
+                        <a href="/logout">
+                            🚪 Logout
+                        </a>
+
+                    {% else %}
+
+                        <a href="/polls">
+                            🗳️ Polls
+                        </a>
+
+                        <a href="/logout">
+                            🚪 Logout
+                        </a>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <a href="/user-login">
+                        🔐 User Login
+                    </a>
+
+                    <a href="/register">
+                        👤 Register
+                    </a>
+
+                    <a href="/admin-login">
+                        ⚙️ Admin Login
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <main>
+
+        {% block content %}
+
         {% endblock %}
-    </div>
-</nav>
 
-{% block content %}{% endblock %}
+    </main>
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <footer class="footer">
+
+        <p>
+            © 2026 Online Poll and Voting System.
+            All rights reserved.
+        </p>
+
+        <p>
+            Secure Voting • Easy Polling • Graphical Results
+        </p>
+
+    </footer>
+
+
+    <script
+        src="{{ url_for('static', filename='js/main.js') }}"
+    ></script>
+
+    {% block scripts %}
+
+    {% endblock %}
 
 </body>
+
 </html>

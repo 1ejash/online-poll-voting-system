@@ -24,36 +24,24 @@
     <form method="POST">
 
         <div class="form-group">
-            <label for="email">Admin Email</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Enter admin email"
-                required
-            >
+            <label for="admin-email">Admin Email</label>
+            <input type="email" id="admin-email" name="email" placeholder="Enter admin email" required>
         </div>
 
         <div class="form-group">
-            <label for="password">Password</label>
-            <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Enter admin password"
-                required
-            >
+            <label for="admin-password">Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="admin-password" name="password" placeholder="Enter admin password" required>
+                <button type="button" class="password-toggle" onclick="togglePassword('admin-password', this)" aria-label="Show password">👁️</button>
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-admin full-width">
-            🔐 Admin Login
-        </button>
+        <button type="submit" class="btn btn-admin full-width">🔐 Admin Login</button>
 
     </form>
 
     <div class="small-link">
-        Are you a user?
-        <a href="/user-login">User Login</a>
+        Are you a user? <a href="/user-login">User Login</a>
     </div>
 
 </div>
