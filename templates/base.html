@@ -1,125 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure, high-integrity online polling and voting platform with verified Gmail authentication.">
+    <title>{% block title %}Axion | Online Voting{% endblock %}</title>
 
-    <title>
-        {% block title %}Online Poll and Voting System{% endblock %}
-    </title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='css/style.css') }}"
-    >
-
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
 </head>
-
 <body>
 
-    <nav class="navbar">
-
+    
+    <header class="navbar">
         <div class="navbar-container">
-
-            <a href="/" class="navbar-brand">
-                🗳️ Online Poll
+            <a href="{{ url_for('home') }}" class="navbar-brand">
+                <span class="brand-icon">🗳️</span>
+                <span>Axion</span>
+                <span class="brand-badge">Gmail Verified</span>
             </a>
 
-            <div class="navbar-menu">
+            
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu">
+                ☰
+            </button>
 
-                <a href="/">
+            
+            <nav class="navbar-menu" id="navMenu">
+                <a href="{{ url_for('home') }}" class="nav-link {% if active_path == '/' %}active{% endif %}">
                     🏠 Home
                 </a>
 
                 {% if session.get("user_id") %}
-
                     {% if session.get("user_role") == "admin" %}
-
-                        <a href="/admin">
+                        <a href="{{ url_for('admin') }}" class="nav-link {% if active_path == '/admin' %}active{% endif %}">
                             📊 Dashboard
                         </a>
-
-                        <a href="/admin/create-poll">
+                        <a href="{{ url_for('create_poll') }}" class="nav-link {% if active_path == '/admin/create-poll' %}active{% endif %}">
                             ➕ Create Poll
                         </a>
-
-                        <a href="/admin/voters">
-                            👥 Voters
+                        <a href="{{ url_for('voters') }}" class="nav-link {% if active_path == '/admin/voters' %}active{% endif %}">
+                            👥 Voter Audit
                         </a>
-
-                        <a href="/logout">
+                        <a href="{{ url_for('create_admin') }}" class="nav-link {% if active_path == '/admin/create-admin' %}active{% endif %}">
+                            🛡️ Create Admin
+                        </a>
+                        <div class="nav-user-pill">
+                            <span class="user-avatar-initial">{{ session.get("user_name", "A")[0] | upper }}</span>
+                            <span>{{ session.get("user_name") }} (Admin)</span>
+                        </div>
+                        <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">
                             🚪 Logout
                         </a>
-
                     {% else %}
-
-                        <a href="/polls">
-                            🗳️ Polls
+                        <a href="{{ url_for('polls') }}" class="nav-link {% if active_path == '/polls' %}active{% endif %}">
+                            🗳️ Available Polls
                         </a>
-
-                        <a href="/logout">
+                        <div class="nav-user-pill">
+                            <span class="user-avatar-initial">{{ session.get("user_name", "U")[0] | upper }}</span>
+                            <span>{{ session.get("user_name") }}</span>
+                        </div>
+                        <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">
                             🚪 Logout
                         </a>
-
                     {% endif %}
-
                 {% else %}
-
-                    <a href="/user-login">
+                    <a href="{{ url_for('user_login') }}" class="nav-link {% if active_path == '/user-login' %}active{% endif %}">
                         🔐 User Login
                     </a>
-
-                    <a href="/register">
-                        👤 Register
+                    <a href="{{ url_for('register') }}" class="nav-link {% if active_path == '/register' %}active{% endif %}">
+                        ✨ Register (Gmail)
                     </a>
-
-                    <a href="/admin-login">
-                        ⚙️ Admin Login
+                    <a href="{{ url_for('admin_login') }}" class="nav-link {% if active_path == '/admin-login' %}active{% endif %}">
+                        ⚙️ Admin
                     </a>
-
                 {% endif %}
-
-            </div>
-
+            </nav>
         </div>
+    </header>
 
-    </nav>
+    
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category in ['success', 'danger', 'warning', 'info'] else 'info' }}">
+                        <div class="alert-content">
+                            <span class="alert-icon">
+                                {% if category == 'success' %}✅
+                                {% elif category == 'danger' %}⚠️
+                                {% elif category == 'warning' %}🔔
+                                {% else %}ℹ️{% endif %}
+                            </span>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="alert-close" aria-label="Dismiss alert">✕</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
 
-
+    
     <main>
-
-        {% block content %}
-
-        {% endblock %}
-
+        {% block content %}{% endblock %}
     </main>
 
-
+    
     <footer class="footer">
-
-        <p>
-            © 2026 Online Poll and Voting System.
-            All rights reserved.
-        </p>
-
-        <p>
-            Secure Voting • Easy Polling • Graphical Results
-        </p>
-
+        <div class="footer-container">
+            <div class="footer-copy">
+                <p><strong>Axion | Online Voting</strong> • Guaranteed 1 Vote per Verified Gmail Account</p>
+                <p style="margin-top: 0.35rem; font-size: 0.85rem; color: var(--slate-500);">
+                    © {{ current_year }} Axion Voting. Robust, Secure & Tamper-Resistant.
+                </p>
+            </div>
+        </div>
     </footer>
 
-
-    <script
-        src="{{ url_for('static', filename='js/main.js') }}"
-    ></script>
-
-    {% block scripts %}
-
-    {% endblock %}
-
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
 </body>
-
 </html>

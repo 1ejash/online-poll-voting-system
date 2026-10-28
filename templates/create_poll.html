@@ -1,102 +1,246 @@
 {% extends "base.html" %}
 
-{% block title %}Create Poll - Admin{% endblock %}
-
-{% block nav %}
-<a href="/admin">Dashboard</a>
-<a href="/logout">Logout</a>
-{% endblock %}
+{% block title %}Create New Poll - Admin Portal{% endblock %}
 
 {% block content %}
-
-<div class="card create-card">
-
-    <div class="form-title">
-        <div class="icon">➕</div>
-        <h1>Create New Poll</h1>
-        <p>Add a question and four voting options</p>
-    </div>
-
-    <form method="POST">
-
-        <div class="form-group">
-            <label for="question">Poll Question</label>
-            <input
-                type="text"
-                id="question"
-                name="question"
-                placeholder="Enter poll question"
-                maxlength="255"
-                required
-            >
-        </div>
-
-        <div class="form-group">
-            <label for="description">Description</label>
-            <textarea
-                id="description"
-                name="description"
-                placeholder="Enter poll description"
-                required
-            ></textarea>
-        </div>
-
-        <h3 class="options-title">📝 Poll Options</h3>
-
-        <div class="form-group">
-            <label for="option1">Option 1</label>
-            <input
-                type="text"
-                id="option1"
-                name="option1"
-                placeholder="Enter option 1"
-                required
-            >
-        </div>
-
-        <div class="form-group">
-            <label for="option2">Option 2</label>
-            <input
-                type="text"
-                id="option2"
-                name="option2"
-                placeholder="Enter option 2"
-                required
-            >
-        </div>
-
-        <div class="form-group">
-            <label for="option3">Option 3</label>
-            <input
-                type="text"
-                id="option3"
-                name="option3"
-                placeholder="Enter option 3"
-                required
-            >
-        </div>
-
-        <div class="form-group">
-            <label for="option4">Option 4</label>
-            <input
-                type="text"
-                id="option4"
-                name="option4"
-                placeholder="Enter option 4"
-                required
-            >
-        </div>
-
-        <button type="submit" class="btn btn-primary full-width">
-            🚀 Create Poll
-        </button>
-
-    </form>
-
-    <a href="/admin" class="back-link">
-        ⬅️ Back to Dashboard
+<div class="page-container" style="max-width: 760px;">
+    
+    <a href="{{ url_for('admin') }}" class="btn btn-secondary btn-sm" style="margin-bottom: 1.5rem;">
+        ← Back to Dashboard
     </a>
 
-</div>
+    <div class="card" style="padding: 2.5rem;">
+        <div style="margin-bottom: 2rem;">
+            <span style="color: var(--primary); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                POLL CREATOR
+            </span>
+            <h1 style="font-size: 2rem; margin-top: 0.35rem;">Create New Community Poll</h1>
+            <p style="color: var(--slate-600); font-size: 0.95rem;">
+                Set up a question and between 2 to 6 choices for verified voters.
+            </p>
+        </div>
 
+        <form action="{{ url_for('create_poll') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="question" class="form-label">
+                    <span>Poll Question</span>
+                    <span style="font-weight: 400; font-size: 0.8rem; color: var(--slate-500);">Max 255 chars</span>
+                </label>
+                <input
+                    type="text"
+                    id="question"
+                    name="question"
+                    class="form-input"
+                    placeholder="e.g., Which cloud infrastructure provider do you prefer?"
+                    value="{{ question if question else '' }}"
+                    maxlength="255"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">
+                    <span>Context / Description</span>
+                    <span style="font-weight: 400; font-size: 0.8rem; color: var(--slate-500);">Optional</span>
+                </label>
+                <textarea
+                    id="description"
+                    name="description"
+                    class="form-textarea"
+                    placeholder="Provide additional details or voting instructions for voters..."
+                >{{ description if description else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="expires_at" class="form-label">Voting Expiry (optional)</label>
+                <input type="datetime-local" id="expires_at" name="expires_at" class="form-input">
+                <small style="color: var(--slate-500);">Leave blank for no time limit. Votes are blocked automatically after this time.</small>
+            </div>
+
+
+            <div class="form-group">
+                <label for="poll_type" class="form-label">Question type</label>
+                <select id="poll_type" name="poll_type" class="form-input">
+                    <option value="multiple_choice" {% if poll is defined and poll.poll_type == 'multiple_choice' %}selected{% endif %}>Multiple choice — choose one</option>
+                    <option value="checkboxes" {% if poll is defined and poll.poll_type == 'checkboxes' %}selected{% endif %}>Checkboxes — choose multiple</option>
+                    <option value="dropdown" {% if poll is defined and poll.poll_type == 'dropdown' %}selected{% endif %}>Dropdown — choose one</option>
+                    <option value="short_answer" {% if poll is defined and poll.poll_type == 'short_answer' %}selected{% endif %}>Short answer</option>
+                    <option value="paragraph" {% if poll is defined and poll.poll_type == 'paragraph' %}selected{% endif %}>Paragraph</option>
+                </select>
+                <small style="color: var(--slate-500);">Select how voters should answer.</small>
+            </div>
+
+            
+            <div class="dynamic-options-wrapper" id="optionsWrapper">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="font-size: 1.1rem; color: var(--slate-900);">📝 Voting Choices</h3>
+                        <p style="font-size: 0.82rem; color: var(--slate-500);">Minimum 2, maximum 6 options</p>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addPollOption()">
+                        ➕ Add Choice
+                    </button>
+                </div>
+
+                <div id="dynamicOptionsContainer">
+                    <div class="dynamic-option-item" id="optionItem_1">
+                        <span class="option-badge-num">1</span>
+                        <input
+                            type="text"
+                            id="option1"
+                            name="option1"
+                            class="form-input"
+                            placeholder="Enter option 1 text"
+                            required
+                        >
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="removePollOption(1)" title="Remove Option">✕</button>
+                    </div>
+
+                    <div class="dynamic-option-item" id="optionItem_2">
+                        <span class="option-badge-num">2</span>
+                        <input
+                            type="text"
+                            id="option2"
+                            name="option2"
+                            class="form-input"
+                            placeholder="Enter option 2 text"
+                            required
+                        >
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="removePollOption(2)" title="Remove Option">✕</button>
+                    </div>
+
+                    <div class="dynamic-option-item" id="optionItem_3">
+                        <span class="option-badge-num">3</span>
+                        <input
+                            type="text"
+                            id="option3"
+                            name="option3"
+                            class="form-input"
+                            placeholder="Enter option 3 text"
+                        >
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="removePollOption(3)" title="Remove Option">✕</button>
+                    </div>
+
+                    <div class="dynamic-option-item" id="optionItem_4">
+                        <span class="option-badge-num">4</span>
+                        <input
+                            type="text"
+                            id="option4"
+                            name="option4"
+                            class="form-input"
+                            placeholder="Enter option 4 text"
+                        >
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="removePollOption(4)" title="Remove Option">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <section class="question-preview-card" aria-live="polite" aria-label="Voter answer preview">
+                <div class="question-preview-heading">
+                    <span class="question-preview-kicker">VOTER PREVIEW</span>
+                    <span id="previewTypeLabel" class="question-preview-type">Multiple choice</span>
+                </div>
+                <p class="question-preview-question" id="previewQuestionText">Your question will appear here</p>
+                <div id="questionAnswerPreview"></div>
+                <small class="question-preview-help">This is a preview only. Voters will submit their answer on the voting page.</small>
+            </section>
+
+            <div style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.85rem 2rem;">
+                    🚀 Publish Poll Now
+                </button>
+                <a href="{{ url_for('admin') }}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const typeSelect = document.getElementById('poll_type');
+    const optionsWrapper = document.getElementById('optionsWrapper');
+    const optionsContainer = document.getElementById('dynamicOptionsContainer');
+    const questionInput = document.getElementById('question');
+    const previewTypeLabel = document.getElementById('previewTypeLabel');
+    const previewQuestionText = document.getElementById('previewQuestionText');
+    const answerPreview = document.getElementById('questionAnswerPreview');
+    if (!typeSelect || !optionsWrapper || !optionsContainer || !answerPreview) return;
+
+    const labels = {
+        multiple_choice: 'Multiple choice',
+        checkboxes: 'Checkboxes',
+        dropdown: 'Dropdown',
+        short_answer: 'Short answer',
+        paragraph: 'Paragraph'
+    };
+
+    function getOptionValues() {
+        return Array.from(optionsContainer.querySelectorAll('input[name^="option"]'))
+            .map(input => input.value.trim()).filter(Boolean);
+    }
+
+    function updateQuestionType() {
+        const textMode = ['short_answer', 'paragraph'].includes(typeSelect.value);
+        optionsWrapper.hidden = textMode;
+        optionsWrapper.querySelectorAll('input[name^="option"]').forEach((input, index) => {
+            input.required = !textMode && index < 2;
+            input.disabled = textMode;
+        });
+        optionsWrapper.querySelectorAll('button').forEach(button => button.disabled = textMode);
+        renderPreview();
+    }
+
+    function renderPreview() {
+        const type = typeSelect.value;
+        const values = getOptionValues();
+        previewTypeLabel.textContent = labels[type] || labels.multiple_choice;
+        previewQuestionText.textContent = (questionInput && questionInput.value.trim()) || 'Your question will appear here';
+        answerPreview.replaceChildren();
+
+        if (type === 'short_answer') {
+            const input = document.createElement('input');
+            input.type = 'text'; input.className = 'form-input';
+            input.placeholder = 'Short answer text'; input.disabled = true;
+            answerPreview.appendChild(input);
+        } else if (type === 'paragraph') {
+            const textarea = document.createElement('textarea');
+            textarea.className = 'form-textarea'; textarea.rows = 3;
+            textarea.placeholder = 'Long answer text'; textarea.disabled = true;
+            answerPreview.appendChild(textarea);
+        } else if (type === 'dropdown') {
+            const select = document.createElement('select');
+            select.className = 'form-input google-form-dropdown'; select.disabled = true;
+            const placeholder = document.createElement('option');
+            placeholder.value = ''; placeholder.textContent = 'Choose an option'; placeholder.selected = true;
+            select.appendChild(placeholder);
+            values.forEach(value => { const option = document.createElement('option'); option.textContent = value; select.appendChild(option); });
+            answerPreview.appendChild(select);
+        } else {
+            const list = document.createElement('div');
+            list.className = 'question-preview-options';
+            values.forEach(value => {
+                const label = document.createElement('label');
+                label.className = 'question-preview-option';
+                const input = document.createElement('input');
+                input.type = type === 'checkboxes' ? 'checkbox' : 'radio'; input.disabled = true;
+                const text = document.createElement('span'); text.textContent = value;
+                label.append(input, text); list.appendChild(label);
+            });
+            answerPreview.appendChild(list);
+        }
+    }
+
+    typeSelect.addEventListener('change', updateQuestionType);
+    if (questionInput) questionInput.addEventListener('input', renderPreview);
+    optionsContainer.addEventListener('input', renderPreview);
+    optionsContainer.addEventListener('click', function (event) {
+        if (event.target.closest('button')) setTimeout(renderPreview, 0);
+    });
+    updateQuestionType();
+});
+</script>
 {% endblock %}

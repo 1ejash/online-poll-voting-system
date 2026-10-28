@@ -1,49 +1,70 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Login - Online Poll{% endblock %}
-
-{% block nav %}
-<a href="/">Home</a>
-<a href="/user-login">User Login</a>
-{% endblock %}
+{% block title %}Admin Portal Login - Axion Voting{% endblock %}
 
 {% block content %}
-
-<div class="card form-card">
-
-    <div class="form-title">
-        <div class="icon">👨‍💼</div>
-        <h1>Admin Login</h1>
-        <p>Login to manage the polling system</p>
-    </div>
-
-    {% if error %}
-    <div class="message message-error">{{ error }}</div>
-    {% endif %}
-
-    <form method="POST">
-
-        <div class="form-group">
-            <label for="admin-email">Admin Email</label>
-            <input type="email" id="admin-email" name="email" placeholder="Enter admin email" required>
+<div class="auth-page">
+    <div class="auth-card" style="border-top: 4px solid var(--slate-900);">
+        <div class="auth-header">
+            <div class="auth-icon">⚙️</div>
+            <h1>Admin Portal</h1>
+            <p>Authorized personnel only. Manage polls and audits.</p>
         </div>
 
-        <div class="form-group">
-            <label for="admin-password">Password</label>
-            <div class="password-wrapper">
-                <input type="password" id="admin-password" name="password" placeholder="Enter admin password" required>
-                <button type="button" class="password-toggle" onclick="togglePassword('admin-password', this)" aria-label="Show password">👁️</button>
+        <form action="{{ url_for('admin_login') }}" method="POST" autocomplete="on">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="admin_email" class="form-label">Administrator Email</label>
+                <input
+                    type="email"
+                    id="admin_email"
+                    name="email"
+                    class="form-input"
+                    placeholder="admin@gmail.com"
+                    value="{{ email if email else '' }}"
+                    required
+                    autocomplete="email"
+                >
             </div>
+
+            <div class="form-group">
+                <label for="admin_password" class="form-label">Security Password</label>
+                <div class="input-password-wrapper">
+                    <input
+                        type="password"
+                        id="admin_password"
+                        name="password"
+                        class="form-input"
+                        placeholder="Enter admin password"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <button
+                        type="button"
+                        class="password-toggle-btn"
+                        onclick="togglePasswordVisibility('admin_password', this)"
+                        aria-label="Toggle password visibility"
+                    >
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-admin btn-full" style="margin-top: 1rem;">
+                🛡️ Authenticate Administrator
+            </button>
+            <div style="text-align: right; margin-top: 0.8rem;">
+                <a href="{{ url_for('forgot_password') }}" style="color: var(--primary); font-weight: 600;">Forgot email/password?</a>
+            </div>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.75rem; font-size: 0.9rem; color: var(--slate-500);">
+            Are you a voter?
+            <a href="{{ url_for('user_login') }}" style="color: var(--primary); font-weight: 600;">
+                Voter Sign In
+            </a>
         </div>
-
-        <button type="submit" class="btn btn-admin full-width">🔐 Admin Login</button>
-
-    </form>
-
-    <div class="small-link">
-        Are you a user? <a href="/user-login">User Login</a>
     </div>
-
 </div>
-
 {% endblock %}

@@ -1,0 +1,22 @@
+Dropdown behavior update
+========================
+
+The poll builder now includes a live voter preview that changes immediately when the question type is changed. For Dropdown, the preview renders a disabled single-select list populated from the current option inputs, similar to the question-type preview in Google Forms.
+
+The actual voter page uses a required single-select control with a placeholder, accessible label/help text, and the existing server-side validation that verifies the selected option belongs to the poll before saving the vote.
+
+Files changed:
+- templates/create_poll.html
+- templates/edit_poll.html
+- templates/vote.html
+- static/css/style.css
+
+Checks performed in this environment:
+- Python source syntax compilation: passed
+- Jinja template parsing: passed for create/edit/vote/results templates
+- JavaScript syntax check: passed for embedded scripts in create/edit/vote templates
+- Static integration checks for all five question types and dropdown server validation: passed
+
+Limitations:
+- Full Flask/browser/database end-to-end tests were not run because Flask and Flask-MySQLdb are not installed in this environment and no network installation was available.
+- Existing .env was preserved from the provided project. Keep the ZIP private because .env may contain credentials.

@@ -1,126 +1,160 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - Online Poll{% endblock %}
-
-{% block nav %}
-<a href="/admin">Dashboard</a>
-<a href="/admin/create-poll">Create Poll</a>
-<a href="/logout">Logout</a>
-{% endblock %}
+{% block title %}Admin Dashboard - Axion Voting{% endblock %}
 
 {% block content %}
-
 <div class="page-container">
-
-    <div class="dashboard-header">
-        <div class="page-header">
-            <h1>👨‍💼 Admin Dashboard</h1>
-            <p>Manage polls and monitor voting activity</p>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="color: var(--primary); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                MANAGEMENT CONSOLE
+            </span>
+            <h1 style="font-size: 2.25rem; margin-top: 0.35rem;">Admin Dashboard</h1>
+            <p style="color: var(--slate-600); font-size: 1rem;">
+                Monitor community participation, audit registered voters, and configure polls.
+            </p>
         </div>
 
-        <a href="/admin/create-poll" class="btn btn-primary">
-            ➕ Create New Poll
-        </a>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="{{ url_for('create_poll') }}" class="btn btn-primary">
+                ➕ Create New Poll
+            </a>
+            <a href="{{ url_for('voters') }}" class="btn btn-secondary">
+                👥 View Voter Audit Log
+            </a>
+            <a href="{{ url_for('create_admin') }}" class="btn btn-secondary">
+                ➕ Create Admin
+            </a>
+        </div>
     </div>
 
-    <div class="stats-grid">
-
-        <div class="card stat-card blue">
-            <div class="stat-icon">👥</div>
-            <h2>{{ total_users }}</h2>
-            <p>Total Users</p>
+    
+    <div class="admin-stats-grid">
+        <div class="admin-stat-card blue">
+            <div class="stat-icon-wrapper" style="color: var(--secondary);">👥</div>
+            <div>
+                <h3 style="font-size: 1.85rem; font-family: var(--font-heading);">{{ total_users }}</h3>
+                <p style="font-size: 0.85rem; color: var(--slate-500); font-weight: 600; text-transform: uppercase;">Verified Voters</p>
+            </div>
         </div>
 
-        <div class="card stat-card purple">
-            <div class="stat-icon">🗳️</div>
-            <h2>{{ total_polls }}</h2>
-            <p>Total Polls</p>
+        <div class="admin-stat-card purple">
+            <div class="stat-icon-wrapper" style="color: var(--primary);">🗳️</div>
+            <div>
+                <h3 style="font-size: 1.85rem; font-family: var(--font-heading);">{{ total_polls }}</h3>
+                <p style="font-size: 0.85rem; color: var(--slate-500); font-weight: 600; text-transform: uppercase;">Total Polls</p>
+            </div>
         </div>
 
-        <div class="card stat-card green">
-            <div class="stat-icon">📊</div>
-            <h2>{{ total_votes }}</h2>
-            <p>Total Votes</p>
+        <div class="admin-stat-card green">
+            <div class="stat-icon-wrapper" style="color: var(--success);">📊</div>
+            <div>
+                <h3 style="font-size: 1.85rem; font-family: var(--font-heading);">{{ total_votes }}</h3>
+                <p style="font-size: 0.85rem; color: var(--slate-500); font-weight: 600; text-transform: uppercase;">Total Votes Cast</p>
+            </div>
         </div>
 
-        <div class="card stat-card orange">
-            <div class="stat-icon">🟢</div>
-            <h2>{{ active_polls }}</h2>
-            <p>Active Polls</p>
+        <div class="admin-stat-card orange">
+            <div class="stat-icon-wrapper" style="color: var(--warning);">🟢</div>
+            <div>
+                <h3 style="font-size: 1.85rem; font-family: var(--font-heading);">{{ active_polls }}</h3>
+                <p style="font-size: 0.85rem; color: var(--slate-500); font-weight: 600; text-transform: uppercase;">Active Polls</p>
+            </div>
         </div>
-
     </div>
 
-    <div class="card table-card">
-
-        <div class="table-header">
-            <h2>📋 Poll Management</h2>
+    
+    <div class="card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 style="font-size: 1.35rem;">📋 Poll Management</h2>
+                <p style="color: var(--slate-500); font-size: 0.9rem;">View, modify, toggle status, or remove active and closed polls.</p>
+            </div>
+            <a href="{{ url_for('create_poll') }}" class="btn btn-primary btn-sm">
+                ➕ New Poll
+            </a>
         </div>
 
-        <table class="poll-table">
-
-            <thead>
-                <tr>
-                    <th>Poll ID</th>
-                    <th>Poll Question</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for poll in polls %}
-
-                <tr>
-                    <td><strong>{{ loop.index }}</strong></td>
-
-                    <td>{{ poll[1] }}</td>
-
-                    <td>
-                        {% if poll[3] == "active" %}
-                        <span class="status-active">🟢 Active</span>
-                        {% else %}
-                        <span class="status-closed">🔴 Closed</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        <div class="action-links">
-
-                            <a
-                                href="/results/{{ poll[0] }}"
-                                class="action-link action-results"
-                            >
-                                📊 Results
-                            </a>
-
-                            <a
-                                href="/admin/edit-poll/{{ poll[0] }}"
-                                class="action-link action-edit"
-                            >
-                                ✏️ Edit
-                            </a>
-
-                            <a
-                                href="/admin/delete-poll/{{ poll[0] }}"
-                                class="action-link action-delete delete-link"
-                            >
-                                🗑️ Delete
-                            </a>
-
-                        </div>
-                    </td>
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">ID</th>
+                        <th>Poll Question</th>
+                        <th>Status</th>
+                        <th>Votes</th>
+                        <th>Options</th>
+                        <th>Created</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if polls %}
+                        {% for poll in polls %}
+                            <tr>
+                                <td><strong>#{{ loop.index }}</strong></td>
+                                <td>
+                                    <div style="font-weight: 600; color: var(--slate-900);">{{ poll.question }}</div>
+                                    {% if poll.description %}
+                                        <div style="font-size: 0.85rem; color: var(--slate-500); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ poll.description }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('toggle_poll', poll_id=poll.id) }}" method="POST" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        {% if poll.status == 'active' %}
+                                            <button type="submit" class="badge badge-active" style="cursor: pointer; border: 1px solid rgba(16, 185, 129, 0.4);" title="Click to Close Poll">
+                                                🟢 Active
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="badge badge-closed" style="cursor: pointer; border: 1px solid var(--slate-300);" title="Click to Activate Poll">
+                                                🔴 Closed
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 700; color: var(--slate-800);">{{ poll.vote_count }}</span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.9rem; color: var(--slate-600);">{{ poll.options_count }} opts</span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: var(--slate-500);">
+                                        {{ poll.created_at.strftime('%Y-%m-%d') if poll.created_at and poll.created_at.strftime is defined else (poll.created_at or '-') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons-group" style="justify-content: flex-end;">
+                                        <a href="{{ url_for('results', poll_id=poll.id) }}" class="btn btn-secondary btn-sm" title="View Results">
+                                            📊 Standings
+                                        </a>
+                                        <a href="{{ url_for('edit_poll', poll_id=poll.id) }}" class="btn btn-secondary btn-sm" title="Edit Question & Options">
+                                            ✏️ Edit
+                                        </a>
+                                        <form action="{{ url_for('delete_poll', poll_id=poll.id) }}" method="POST" style="display: inline;" onsubmit="return confirmDeletePoll('{{ poll.question | escape }}')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete Poll">
+                                                🗑️
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem; color: var(--slate-500);">
+                                No polls have been created yet. <a href="{{ url_for('create_poll') }}" style="color: var(--primary); font-weight: 600;">Create the first poll</a>.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
 </div>
-
 {% endblock %}

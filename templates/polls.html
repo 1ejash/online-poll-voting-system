@@ -1,433 +1,105 @@
 {% extends "base.html" %}
 
-{% block title %}Polls - Online Poll and Voting System{% endblock %}
+{% block title %}Available Polls - Axion{% endblock %}
 
 {% block content %}
-
-<section class="polls-page">
-
-    <div class="polls-header">
-
+<div class="page-container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <span class="page-label">VOTING CENTER</span>
-
-            <h1>Available Polls</h1>
-
-            <p>
-                Choose a poll, cast your vote, and view the latest results.
+            <span style="color: var(--primary); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                VOTING CENTER
+            </span>
+            <h1 style="font-size: 2.25rem; margin-top: 0.35rem;">Community Polls</h1>
+            <p style="color: var(--slate-600); font-size: 1rem;">
+                Select any active poll below to cast your verified vote or view current standings.
             </p>
         </div>
 
+        <div style="background: var(--slate-100); padding: 0.4rem 0.85rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; color: var(--slate-700); border: 1px solid var(--slate-200);">
+            👤 Voter: <strong>{{ session.get("user_email") }}</strong>
+        </div>
     </div>
 
-
-    <div class="poll-search">
-
-        <input
-            type="text"
-            id="pollSearch"
-            placeholder="🔎 Search polls..."
-            onkeyup="searchPolls()"
-        >
-
+    
+    <div class="poll-filters-bar">
+        <div class="search-box">
+            <span class="search-icon">🔎</span>
+            <input
+                type="text"
+                id="pollSearchInput"
+                class="search-input"
+                placeholder="Search polls by topic, question, or keyword..."
+            >
+        </div>
     </div>
 
-
+    
     {% if polls %}
-
-        <div class="poll-grid" id="pollGrid">
-
+        <div class="poll-grid" id="pollsGridContainer">
             {% for poll in polls %}
+                <div class="poll-card" data-voted="{{ 'true' if poll.already_voted else 'false' }}">
+                    <div>
+                        <div class="poll-card-top">
+                            {% if poll.status == 'active' %}
+                                <span class="badge badge-active">🟢 Active</span>
+                            {% else %}
+                                <span class="badge badge-closed">🔴 Closed</span>
+                            {% endif %}
 
-                <div
-                    class="poll-card"
-                    data-poll-name="{{ poll[1] | lower }}"
-                >
+                            {% if poll.already_voted %}
+                                <span class="badge badge-voted">✓ Voted</span>
+                            {% endif %}
+                        </div>
 
-                    <div class="poll-card-top">
-
-                        <span class="status status-active">
-                            🟢 Active
-                        </span>
-
-                        {% if poll[4] %}
-                            <span class="voted-badge">
-                                ✓ Voted
-                            </span>
-                        {% endif %}
-
+                        <h2>{{ poll.question }}</h2>
+                        <p class="poll-description">
+                            {{ poll.description if poll.description else "Voice your opinion and be counted in this real-time community poll." }}
+                        </p>
                     </div>
 
+                    <div>
+                        <div class="poll-meta">
+                            <span>🗳️ {{ poll.total_votes }} votes</span>
+                            {% if poll.created_at %}
+                                <span>📅 {{ poll.created_at.strftime('%b %d, %Y') if poll.created_at.strftime is defined else poll.created_at }}</span>
+                            {% endif %}
+                        </div>
 
-                    <h2>
-                        {{ poll[1] }}
-                    </h2>
-
-
-                    {% if poll[2] %}
-
-                        <p class="poll-description">
-                            {{ poll[2] }}
-                        </p>
-
-                    {% else %}
-
-                        <p class="poll-description">
-                            Participate in this poll and make your choice.
-                        </p>
-
-                    {% endif %}
-
-
-                    <div class="poll-card-footer">
-
-                        {% if poll[4] %}
-
-                            <div class="poll-voted-message">
-                                ✓ You have already voted
-                            </div>
-
-                            <a
-                                href="/results/{{ poll[0] }}"
-                                class="btn btn-secondary"
-                            >
-                                📊 View Results
-                            </a>
-
-                        {% else %}
-
-                            <a
-                                href="/vote/{{ poll[0] }}"
-                                class="btn btn-primary"
-                            >
-                                🗳️ Vote Now
-                            </a>
-
-                            <a
-                                href="/results/{{ poll[0] }}"
-                                class="results-link"
-                            >
-                                📊 View Results
-                            </a>
-
-                        {% endif %}
-
+                        <div style="display: flex; gap: 0.75rem;">
+                            {% if poll.already_voted %}
+                                <a href="{{ url_for('results', poll_id=poll.id) }}" class="btn btn-secondary btn-full">
+                                    📊 View Live Results
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('vote', poll_id=poll.id) }}" class="btn btn-primary btn-full">
+                                    🗳️ Cast Your Vote →
+                                </a>
+                                <a href="{{ url_for('results', poll_id=poll.id) }}" class="btn btn-secondary" title="View Standings">
+                                    📊
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
-
                 </div>
-
             {% endfor %}
-
         </div>
 
-
-        <div
-            id="noPollsMessage"
-            class="no-polls-message"
-            style="display: none;"
-        >
-
-            <div class="no-polls-icon">
-                🔎
-            </div>
-
-            <h3>No polls found</h3>
-
-            <p>
-                Try searching with a different keyword.
-            </p>
-
+        <div id="noMatchesFound" class="card" style="display: none; text-align: center; padding: 3rem; margin-top: 1.5rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>
+            <h3>No matching polls found</h3>
+            <p style="color: var(--slate-500); margin-top: 0.35rem;">Try refining or clearing your search term.</p>
         </div>
-
     {% else %}
-
-        <div class="empty-polls">
-
-            <div class="empty-polls-icon">
-                🗳️
-            </div>
-
-            <h2>No Active Polls</h2>
-
-            <p>
-                There are currently no active polls available.
-                Please check again later.
+        <div class="card" style="text-align: center; padding: 4rem 2rem;">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">📋</div>
+            <h2>No active polls available right now</h2>
+            <p style="color: var(--slate-500); max-width: 500px; margin: 0.5rem auto 1.5rem;">
+                There are currently no polls open for voting. Check back later or ask an administrator to publish a new poll!
             </p>
-
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                ← Return to Home
+            </a>
         </div>
-
     {% endif %}
-
-</section>
-
-
-<style>
-
-    .polls-page {
-        width: 90%;
-        max-width: 1150px;
-        margin: 0 auto;
-        padding: 55px 0 80px;
-    }
-
-    .polls-header {
-        margin-bottom: 30px;
-    }
-
-    .page-label {
-        color: #2563eb;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-    }
-
-    .polls-header h1 {
-        margin-top: 8px;
-        font-size: 38px;
-        color: #0f172a;
-    }
-
-    .polls-header p {
-        margin-top: 8px;
-        color: #64748b;
-        font-size: 16px;
-    }
-
-    .poll-search {
-        margin-bottom: 30px;
-    }
-
-    .poll-search input {
-        width: 100%;
-        max-width: 600px;
-        padding: 14px 18px;
-        border: 1px solid #cbd5e1;
-        border-radius: 10px;
-        outline: none;
-        background: #ffffff;
-        color: #172033;
-        font-size: 15px;
-        transition: 0.2s ease;
-    }
-
-    .poll-search input:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 3px #dbeafe;
-    }
-
-    .poll-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 22px;
-    }
-
-    .poll-card {
-        display: flex;
-        flex-direction: column;
-        min-height: 300px;
-        padding: 25px;
-        background: #ffffff;
-        border: 1px solid #dbe3ee;
-        border-radius: 14px;
-        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04);
-        transition: 0.25s ease;
-    }
-
-    .poll-card:hover {
-        transform: translateY(-5px);
-        border-color: #93c5fd;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.09);
-    }
-
-    .poll-card-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 22px;
-    }
-
-    .poll-card h2 {
-        color: #172033;
-        font-size: 21px;
-        line-height: 1.35;
-        margin-bottom: 12px;
-    }
-
-    .poll-description {
-        color: #64748b;
-        font-size: 14px;
-        line-height: 1.7;
-        margin-bottom: 20px;
-    }
-
-    .status {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 11px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .status-active {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .voted-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 11px;
-        background: #e0ecff;
-        color: #1e40af;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .poll-card-footer {
-        margin-top: auto;
-        padding-top: 18px;
-        border-top: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .poll-voted-message {
-        width: 100%;
-        margin-bottom: 5px;
-        color: #15803d;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .results-link {
-        color: #2563eb;
-        font-size: 14px;
-        font-weight: 600;
-        padding: 10px 5px;
-    }
-
-    .results-link:hover {
-        color: #1d4ed8;
-        text-decoration: underline;
-    }
-
-    .empty-polls,
-    .no-polls-message {
-        text-align: center;
-        padding: 70px 25px;
-        background: #ffffff;
-        border: 1px solid #dbe3ee;
-        border-radius: 14px;
-        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04);
-    }
-
-    .empty-polls-icon,
-    .no-polls-icon {
-        font-size: 45px;
-        margin-bottom: 15px;
-    }
-
-    .empty-polls h2,
-    .no-polls-message h3 {
-        color: #172033;
-        margin-bottom: 8px;
-    }
-
-    .empty-polls p,
-    .no-polls-message p {
-        color: #64748b;
-        font-size: 14px;
-    }
-
-
-    @media (max-width: 900px) {
-
-        .poll-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-    }
-
-
-    @media (max-width: 600px) {
-
-        .polls-page {
-            padding: 40px 0 60px;
-        }
-
-        .polls-header h1 {
-            font-size: 30px;
-        }
-
-        .poll-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .poll-card {
-            min-height: auto;
-        }
-
-    }
-
-</style>
-
-
-<script>
-
-    function searchPolls() {
-
-        const searchInput =
-            document.getElementById("pollSearch");
-
-        const searchText =
-            searchInput.value.toLowerCase().trim();
-
-        const pollCards =
-            document.querySelectorAll(".poll-card");
-
-        const noPollsMessage =
-            document.getElementById("noPollsMessage");
-
-        let visiblePolls = 0;
-
-
-        pollCards.forEach(function(card) {
-
-            const pollName =
-                card.getAttribute("data-poll-name");
-
-            if (pollName.includes(searchText)) {
-
-                card.style.display = "";
-
-                visiblePolls++;
-
-            } else {
-
-                card.style.display = "none";
-
-            }
-
-        });
-
-
-        if (visiblePolls === 0) {
-
-            noPollsMessage.style.display = "block";
-
-        } else {
-
-            noPollsMessage.style.display = "none";
-
-        }
-
-    }
-
-</script>
-
+</div>
 {% endblock %}

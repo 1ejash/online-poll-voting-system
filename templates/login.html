@@ -1,26 +1,33 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Online Poll{% endblock %}
+{% block title %}Choose Login Type - Axion{% endblock %}
 
 {% block content %}
+<div class="auth-page">
+    <div class="auth-card" style="text-align: center;">
+        <div class="auth-header">
+            <div class="auth-icon">🗳️</div>
+            <h1>Welcome to Axion</h1>
+            <p>Please select your login portal to proceed.</p>
+        </div>
 
-<div class="card form-card">
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+            <a href="{{ url_for('user_login') }}" class="btn btn-primary btn-full" style="padding: 1rem; font-size: 1.05rem;">
+                🔐 Voter Login (Verified Gmail)
+            </a>
 
-    <div class="form-title">
-        <div class="icon">🔐</div>
-        <h1>Login</h1>
-        <p>Please choose the correct login type</p>
+            <a href="{{ url_for('register') }}" class="btn btn-secondary btn-full" style="padding: 1rem; font-size: 1.05rem;">
+                ✨ Create New Voter Account
+            </a>
+
+            <div class="auth-divider">
+                <span>ADMINISTRATION</span>
+            </div>
+
+            <a href="{{ url_for('admin_login') }}" class="btn btn-admin btn-full" style="padding: 0.85rem;">
+                ⚙️ Administrator Portal
+            </a>
+        </div>
     </div>
-
-    <div class="results-actions">
-        <a href="/user-login" class="btn btn-primary">
-            👤 User Login
-        </a>
-        <a href="/admin-login" class="btn btn-admin">
-            👨‍💼 Admin Login
-        </a>
-    </div>
-
 </div>
-
 {% endblock %}

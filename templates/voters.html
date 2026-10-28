@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Voter Audit Log - Axion Voting{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="color: var(--primary); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                COMPLIANCE & INTEGRITY
+            </span>
+            <h1 style="font-size: 2.25rem; margin-top: 0.35rem;">Voter Audit Log</h1>
+            <p style="color: var(--slate-600); font-size: 1rem;">
+                Audit trail of registered voters, verified Gmail domains, and participation history.
+            </p>
+        </div>
+
+        <a href="{{ url_for('admin') }}" class="btn btn-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    
+    <div class="card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 style="font-size: 1.35rem;">👥 Registered Gmail Voters ({{ voters | length }})</h2>
+                <p style="color: var(--slate-500); font-size: 0.9rem;">
+                    Every voter below has passed authentic <code>@gmail.com</code> domain verification.
+                </p>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--success); background: var(--success-light); padding: 0.35rem 0.85rem; border-radius: var(--radius-full); border: 1px solid #a7f3d0;">
+                ✓ 100% Verified Gmail
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th>Voter Name</th>
+                        <th>Gmail Address</th>
+                        <th>Auth Provider</th>
+                        <th>Registered Date</th>
+                        <th>Polls Voted</th>
+                        <th>Last Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if voters %}
+                        {% for voter in voters %}
+                            <tr>
+                                <td><strong>{{ loop.index }}</strong></td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                        <span class="user-avatar-initial" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                                            {{ voter.name[0] | upper }}
+                                        </span>
+                                        <span style="font-weight: 600; color: var(--slate-900);">{{ voter.name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code style="font-size: 0.9rem; color: var(--primary); font-weight: 600;">
+                                        {{ voter.email }}
+                                    </code>
+                                </td>
+                                <td>
+                                    {% if voter.google_id %}
+                                        <span class="badge" style="background: #e8f0fe; color: #1967d2; border: 1px solid #c2e7ff;">
+                                            Google OAuth
+                                        </span>
+                                    {% else %}
+                                        <span class="badge" style="background: var(--slate-100); color: var(--slate-700); border: 1px solid var(--slate-300);">
+                                            Gmail Password
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.88rem; color: var(--slate-600);">
+                                        {{ voter.created_at.strftime('%Y-%m-%d') if voter.created_at and voter.created_at.strftime is defined else (voter.created_at or '-') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: var(--primary-light); color: var(--primary); font-size: 0.85rem;">
+                                        {{ voter.total_votes_cast }} poll{{ 's' if voter.total_votes_cast != 1 else '' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: var(--slate-500);">
+                                        {{ voter.last_voted_at.strftime('%Y-%m-%d %H:%M') if voter.last_voted_at and voter.last_voted_at.strftime is defined else (voter.last_voted_at or 'Never') }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem; color: var(--slate-500);">
+                                No voters registered yet.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

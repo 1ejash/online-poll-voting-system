@@ -1,0 +1,10 @@
+USE online_poll_db;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE votes;
+TRUNCATE TABLE poll_options;
+TRUNCATE TABLE polls;
+TRUNCATE TABLE password_reset_tokens;
+TRUNCATE TABLE password_reset_otps;
+TRUNCATE TABLE pending_registrations;
+TRUNCATE TABLE users;
+SET FOREIGN_KEY_CHECKS = 1;

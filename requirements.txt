@@ -3,3 +3,4 @@ Flask-MySQLdb
 gunicorn
 Authlib
 requests
+python-dotenv

@@ -7,14 +7,19 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'user'
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    google_id VARCHAR(255) DEFAULT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS polls (
     id INT AUTO_INCREMENT PRIMARY KEY,
     question VARCHAR(255) NOT NULL,
     description TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'active'
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    poll_type VARCHAR(30) NOT NULL DEFAULT 'multiple_choice',
+    expires_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS poll_options (
@@ -36,10 +41,17 @@ CREATE TABLE IF NOT EXISTS votes (
     FOREIGN KEY (option_id) REFERENCES poll_options(id) ON DELETE CASCADE
 );
 
-INSERT INTO users (name, email, password, role)
-SELECT 'Admin', 'admin@gmail.com',
-       'scrypt:32768:8:1$demo$replace-this-with-a-real-hash',
-       'admin'
-WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE email = 'admin@gmail.com'
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token_hash CHAR(64) NOT NULL UNIQUE,
+    expires_at BIGINT NOT NULL,
+    used TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+
+
+

@@ -1,0 +1,15 @@
+Axion update status
+
+Fixed in this package:
+- Removed the duplicate poll-expiry validation block.
+- Added poll_type to fresh SQLite and MySQL schemas and startup migrations.
+- Poll creation and editing now persist the selected poll_type.
+- Edit poll query now returns poll_type for the template.
+- Removed source comments from Python, HTML, CSS, JavaScript and SQL files.
+- Updated reset_demo_data.sql to include password reset OTPs and pending registrations.
+
+Important limitation:
+The current vote storage and vote route still store one selected option per voter/poll. The question-type selector is persisted, but checkbox multi-select and short-answer/paragraph response collection are not fully implemented end-to-end in this package. Do not present those question types as fully working.
+
+Verification:
+Python files were syntax-checked. Runtime tests require installing requirements.txt and a configured MySQL database; they were not verified against a live database in this build environment.

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Notice - {{ error_code if error_code else 404 }}{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 600px; text-align: center; padding: 4rem 1.5rem;">
+    <div class="card" style="padding: 3.5rem 2rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">
+            {% if error_code == 403 %}🔒
+            {% elif error_code == 500 %}⚙️
+            {% else %}🔍{% endif %}
+        </div>
+
+        <h1 style="font-size: 2.25rem; margin-bottom: 0.75rem;">
+            {{ error_code if error_code else 404 }} - {{ message if message else 'Page Not Found' }}
+        </h1>
+
+        <p style="color: var(--slate-600); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.6;">
+            {% if error_code == 403 %}
+                Access is restricted to authorized credentials. Please sign in with appropriate permissions.
+            {% elif error_code == 500 %}
+                An internal server error occurred while processing your request. Please try again shortly.
+            {% else %}
+                The page or resource you are looking for does not exist or has been relocated.
+            {% endif %}
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('home') }}" class="btn btn-primary">
+                🏠 Return Home
+            </a>
+            {% if session.get("user_id") %}
+                <a href="{{ url_for('polls') }}" class="btn btn-secondary">
+                    🗳️ View Polls
+                </a>
+            {% else %}
+                <a href="{{ url_for('user_login') }}" class="btn btn-secondary">
+                    🔐 Voter Login
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

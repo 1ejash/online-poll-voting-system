@@ -1,6 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
 venv/
 .venv/
-__pycache__/
-*.pyc
+env/
+
+# Secrets and local config
 .env
-config.py
+.env.*
+!.env.example
+
+# Local databases and logs
+*.sqlite3
+*.db
+*.log
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

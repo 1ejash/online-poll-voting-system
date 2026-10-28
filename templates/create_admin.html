@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Create Administrator - Axion Voting{% endblock %}
+{% block content %}
+<div class="auth-page"><div class="auth-card admin-create-card">
+  <div class="auth-header"><div class="auth-icon">🛡️</div><h1>Create Admin Account</h1><p>Only a currently signed-in administrator can create another administrator.</p></div>
+  <form method="POST" action="{{ url_for('create_admin') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group"><label class="form-label" for="name">Full Name</label><input class="form-input" id="name" name="name" maxlength="100" required></div>
+    <div class="form-group"><label class="form-label" for="email">Gmail Address</label><input class="form-input" id="email" name="email" type="email" placeholder="admin@gmail.com" required></div>
+    <div class="form-group"><label class="form-label" for="password">Password</label><input class="form-input" id="password" name="password" type="password" minlength="6" autocomplete="new-password" required></div>
+    <div class="form-group"><label class="form-label" for="confirm_password">Confirm Password</label><input class="form-input" id="confirm_password" name="confirm_password" type="password" minlength="6" autocomplete="new-password" required></div>
+    <button class="btn btn-admin btn-full" type="submit">🛡️ Create Administrator</button>
+  </form>
+  <p style="font-size:.85rem;color:var(--slate-500);margin-top:1rem">For the first admin account, set <code>ADMIN_EMAIL</code> and a strong <code>ADMIN_PASSWORD</code> in your local <code>.env</code>, then restart the app.</p>
+</div></div>
+{% endblock %}

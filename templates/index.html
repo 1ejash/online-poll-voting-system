@@ -1,338 +1,163 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Online Poll and Voting System{% endblock %}
+{% block title %}Axion | Online Voting - Secure Gmail-Verified Voting{% endblock %}
 
 {% block content %}
 
 <section class="hero-section">
+    <div class="hero-pill">
+        <span>🛡️</span> Verified Real Gmail Voters Only • Zero Duplicate Votes
+    </div>
 
-    <div class="hero-content">
+    <h1 class="hero-title">
+        Transparent Opinions. <br>
+        <span>High-Integrity Online Voting.</span>
+    </h1>
 
-        <span class="hero-badge">🗳️ Online Poll & Voting System</span>
+    <p class="hero-description">
+        Experience a modernized polling platform built with strict Gmail authentication,
+        real-time visual analytics, and cryptographic vote integrity.
+    </p>
 
-        <h1>
-            Your Voice.
-            <span>Your Vote.</span>
-            Your Choice.
-        </h1>
-
-        <p>
-            Participate in online polls, cast your vote securely,
-            and explore graphical results in a simple and user-friendly
-            voting platform.
-        </p>
-
-        <div class="hero-buttons">
-
-            <a href="/user-login" class="btn btn-primary">
-                🗳️ Start Voting
+    <div class="hero-cta">
+        {% if session.get("user_id") %}
+            {% if session.get("user_role") == "admin" %}
+                <a href="{{ url_for('admin') }}" class="btn btn-primary" style="padding: 0.9rem 1.8rem; font-size: 1.05rem;">
+                    📊 Open Admin Dashboard
+                </a>
+                <a href="{{ url_for('create_poll') }}" class="btn btn-secondary" style="padding: 0.9rem 1.8rem; font-size: 1.05rem;">
+                    ➕ Create New Poll
+                </a>
+            {% else %}
+                <a href="{{ url_for('polls') }}" class="btn btn-primary" style="padding: 0.9rem 1.8rem; font-size: 1.05rem;">
+                    🗳️ Explore Active Polls →
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 0.9rem 1.8rem; font-size: 1.05rem;">
+                ✨ Join with Gmail Account
             </a>
-
-            <a href="/register" class="btn btn-secondary">
-                👤 Create Account
+            <a href="{{ url_for('user_login') }}" class="btn btn-secondary" style="padding: 0.9rem 1.8rem; font-size: 1.05rem;">
+                🔐 Existing Voter Login
             </a>
-
-        </div>
-
+        {% endif %}
     </div>
 
+    
+    <div class="hero-stats-row">
+        <div class="hero-stat-card">
+            <div class="stat-num">{{ stats.polls }}</div>
+            <div class="stat-label">Total Polls Created</div>
+        </div>
+        <div class="hero-stat-card">
+            <div class="stat-num">{{ stats.votes }}</div>
+            <div class="stat-label">Verified Votes Cast</div>
+        </div>
+        <div class="hero-stat-card">
+            <div class="stat-num">{{ stats.voters }}</div>
+            <div class="stat-label">Registered Voters</div>
+        </div>
+    </div>
 </section>
 
 
-<section class="info-section">
+<div class="page-container" style="margin-top: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="color: var(--primary); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                LIVE QUESTIONS
+            </span>
+            <h2 style="font-size: 2rem; margin-top: 0.35rem;">Currently Active Polls</h2>
+            <p style="color: var(--slate-500); font-size: 0.95rem;">Cast your verified vote now or view live public results.</p>
+        </div>
 
-    <div class="section-heading">
-
-        <span>HOW IT WORKS</span>
-
-        <h2>
-            Simple, Fast & Easy Voting
-        </h2>
-
-        <p>
-            Follow three simple steps to participate in an online poll.
-        </p>
-
+        {% if session.get("user_id") %}
+            <a href="{{ url_for('polls') }}" class="btn btn-secondary">
+                View All Polls ({{ stats.polls }}) →
+            </a>
+        {% else %}
+            <a href="{{ url_for('user_login') }}" class="btn btn-secondary">
+                Login to Vote →
+            </a>
+        {% endif %}
     </div>
 
+    {% if featured_polls %}
+        <div class="poll-grid">
+            {% for poll in featured_polls %}
+                <div class="poll-card">
+                    <div class="poll-card-top">
+                        <span class="badge badge-active">🟢 Active</span>
+                        <span style="font-size: 0.82rem; color: var(--slate-400); font-weight: 600;">Poll #{{ loop.index }}</span>
+                    </div>
 
-    <div class="info-grid">
+                    <h2>{{ poll.question }}</h2>
+                    <p class="poll-description">
+                        {{ poll.description if poll.description else "Voice your opinion and be counted in this real-time community poll." }}
+                    </p>
 
-        <div class="info-card">
+                    <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                        {% if session.get("user_id") and session.get("user_role") == "user" %}
+                            <a href="{{ url_for('vote', poll_id=poll.id) }}" class="btn btn-primary btn-full">
+                                🗳️ Cast Vote
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('user_login') }}" class="btn btn-primary btn-full">
+                                🗳️ Vote Now
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('results', poll_id=poll.id) }}" class="btn btn-secondary" title="View Results">
+                            📊
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🗳️</div>
+            <h3>No active polls at this moment</h3>
+            <p style="color: var(--slate-500); margin-top: 0.5rem;">New polls will appear here soon.</p>
+        </div>
+    {% endif %}
 
-            <div class="info-icon">
-                👤
-            </div>
-
-            <h3>1. Register</h3>
-
-            <p>
-                Create your account using your name, email address
-                and password.
+    
+    <div style="margin-top: 5rem;">
+        <div style="text-align: center; max-width: 650px; margin: 0 auto 3rem;">
+            <span style="color: var(--primary); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                SECURITY & RELIABILITY
+            </span>
+            <h2 style="font-size: 2.2rem; margin-top: 0.5rem;">Why Verified Gmail Authentication?</h2>
+            <p style="color: var(--slate-600); margin-top: 0.6rem;">
+                Online surveys are frequently ruined by bots, temporary disposable emails, and ballot stuffing. Our platform prevents manipulation at every level.
             </p>
-
         </div>
 
-
-        <div class="info-card">
-
-            <div class="info-icon">
-                🗳️
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.75rem;">
+            <div class="card">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">🛡️</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Strict @gmail.com Only</h3>
+                <p style="color: var(--slate-600); font-size: 0.92rem; line-height: 1.6;">
+                    Only legitimate Google Gmail accounts can access and participate, blocking disposable emails, spam bots, and fake domains.
+                </p>
             </div>
 
-            <h3>2. Cast Your Vote</h3>
-
-            <p>
-                Login to your account, choose an active poll and
-                select your preferred option.
-            </p>
-
-        </div>
-
-
-        <div class="info-card">
-
-            <div class="info-icon">
-                📊
+            <div class="card">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">🔒</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">One Voter, One Vote</h3>
+                <p style="color: var(--slate-600); font-size: 0.92rem; line-height: 1.6;">
+                    Database-level unique constraints and session verification ensure that an account cannot vote twice in any poll.
+                </p>
             </div>
 
-            <h3>3. View Results</h3>
-
-            <p>
-                View automatically calculated voting results using
-                easy-to-understand graphical charts.
-            </p>
-
+            <div class="card">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">📊</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Live Graphical Charts</h3>
+                <p style="color: var(--slate-600); font-size: 0.92rem; line-height: 1.6;">
+                    Instantly updated interactive charts and breakdowns allow transparent inspection of results with percentages and leaderboards.
+                </p>
+            </div>
         </div>
-
     </div>
-
-</section>
-
-
-<section class="features-section">
-
-    <div class="section-heading">
-
-        <span>FEATURES</span>
-
-        <h2>
-            Everything You Need for Online Voting
-        </h2>
-
-    </div>
-
-
-    <div class="feature-grid">
-
-        <div class="feature-card">
-
-            <div class="feature-icon">
-                🔐
-            </div>
-
-            <div>
-
-                <h3>Secure Login</h3>
-
-                <p>
-                    User and administrator accounts are separated
-                    for better access control.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="feature-card">
-
-            <div class="feature-icon">
-                ✅
-            </div>
-
-            <div>
-
-                <h3>One Vote Per Poll</h3>
-
-                <p>
-                    The system prevents a user from voting multiple
-                    times in the same poll.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="feature-card">
-
-            <div class="feature-icon">
-                📈
-            </div>
-
-            <div>
-
-                <h3>Graphical Results</h3>
-
-                <p>
-                    Voting results are presented through clear
-                    graphical charts for easy analysis.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="feature-card">
-
-            <div class="feature-icon">
-                ⚡
-            </div>
-
-            <div>
-
-                <h3>Automatic Counting</h3>
-
-                <p>
-                    Votes are counted automatically as users
-                    participate in polls.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="feature-card">
-
-            <div class="feature-icon">
-                📱
-            </div>
-
-            <div>
-
-                <h3>User-Friendly</h3>
-
-                <p>
-                    A simple interface makes the system easy to use
-                    on different devices.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="feature-card">
-
-            <div class="feature-icon">
-                ⚙️
-            </div>
-
-            <div>
-
-                <h3>Admin Control</h3>
-
-                <p>
-                    Administrators can create, edit, manage and
-                    monitor polls.
-                </p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<section class="about-section">
-
-    <div class="about-content">
-
-        <div class="about-text">
-
-            <span>ABOUT THE SYSTEM</span>
-
-            <h2>
-                Making Online Polling Simple
-            </h2>
-
-            <p>
-                The Online Poll and Voting System is a web-based
-                application designed to make polling and voting
-                easier, faster and more organized.
-            </p>
-
-            <p>
-                Registered users can participate in active polls,
-                while administrators can manage polls and monitor
-                voting activity.
-            </p>
-
-            <p>
-                The system also provides graphical result analysis,
-                allowing users to understand voting outcomes quickly.
-            </p>
-
-        </div>
-
-
-        <div class="about-points">
-
-            <div class="about-point">
-                <span>✓</span>
-                <p>Easy online voting</p>
-            </div>
-
-            <div class="about-point">
-                <span>✓</span>
-                <p>Automatic vote counting</p>
-            </div>
-
-            <div class="about-point">
-                <span>✓</span>
-                <p>Graphical result analysis</p>
-            </div>
-
-            <div class="about-point">
-                <span>✓</span>
-                <p>Admin poll management</p>
-            </div>
-
-            <div class="about-point">
-                <span>✓</span>
-                <p>Duplicate vote prevention</p>
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<section class="cta-section">
-
-    <div class="cta-content">
-
-        <h2>
-            Ready to Make Your Choice?
-        </h2>
-
-        <p>
-            Login to your account and participate in available polls.
-        </p>
-
-        <a href="/user-login" class="btn btn-primary">
-            🗳️ Vote Now
-        </a>
-
-    </div>
-
-</section>
-
+</div>
 {% endblock %}
