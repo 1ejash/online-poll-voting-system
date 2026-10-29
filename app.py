@@ -574,19 +574,30 @@ def create_app(config_class=Config):
                     return render_template("vote.html", poll=poll, options=options)
                 db.execute("INSERT INTO poll_answers (user_id, poll_id, answer_text) VALUES (%s, %s, %s)", (user_id, poll_id, answer_text))
             elif poll_type == "checkboxes":
-                selected = request.form.getlist("option_ids")
-                if not selected:
+                # HTML checkboxes submit repeated option_ids fields. Read every value,
+                # normalize IDs, validate them against this poll, and store the full set.
+                submitted_ids = request.form.getlist("option_ids")
+                if not submitted_ids:
                     flash("Please select at least one option.", "danger")
                     return render_template("vote.html", poll=poll, options=options)
-                valid = db.fetchall(
-                    "SELECT id FROM poll_options WHERE poll_id = %s AND id IN (" + ",".join(["%s"] * len(selected)) + ")",
-                    tuple([poll_id] + selected)
-                )
-                valid_ids = {str(row["id"]) for row in valid}
-                if len(valid_ids) != len(set(selected)):
+                if any(not str(value).strip().isdigit() for value in submitted_ids):
                     flash("One or more selected options are invalid.", "danger")
                     return render_template("vote.html", poll=poll, options=options)
-                db.execute("INSERT INTO poll_answers (user_id, poll_id, selected_option_ids) VALUES (%s, %s, %s)", (user_id, poll_id, "," + ",".join(sorted(valid_ids, key=int)) + ","))
+                selected_ids = list(dict.fromkeys(int(value) for value in submitted_ids))
+                placeholders = ",".join(["%s"] * len(selected_ids))
+                valid = db.fetchall(
+                    f"SELECT id FROM poll_options WHERE poll_id = %s AND id IN ({placeholders})",
+                    tuple([poll_id] + selected_ids)
+                )
+                valid_ids = sorted({int(row["id"]) for row in valid})
+                if len(valid_ids) != len(selected_ids):
+                    flash("One or more selected options do not belong to this poll.", "danger")
+                    return render_template("vote.html", poll=poll, options=options)
+                stored_ids = "," + ",".join(str(option_id) for option_id in valid_ids) + ","
+                db.execute(
+                    "INSERT INTO poll_answers (user_id, poll_id, selected_option_ids) VALUES (%s, %s, %s)",
+                    (user_id, poll_id, stored_ids)
+                )
             elif poll_type == "dropdown":
                 # Dropdown submits one option_id, just like single-choice voting.
                 option_id = request.form.get("option_id", "").strip()

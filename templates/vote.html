@@ -45,16 +45,13 @@
                 {% elif poll.poll_type == 'paragraph' %}
                     <textarea name="answer_text" class="form-textarea" rows="5" maxlength="5000" required placeholder="Write your answer..."></textarea>
                 {% elif poll.poll_type == 'dropdown' %}
-                    <div class="google-form-dropdown-field">
-                        <label for="dropdown_option" class="form-label">Your answer <span aria-hidden="true" style="color: var(--danger, #b42318);">*</span></label>
-                        <select id="dropdown_option" name="option_id" class="form-input google-form-dropdown" required aria-describedby="dropdown_help">
-                            <option value="" selected disabled>Choose an option</option>
-                            {% for opt in options %}
-                                <option value="{{ opt.id }}">{{ opt.option_text }}</option>
-                            {% endfor %}
-                        </select>
-                        <small id="dropdown_help" class="question-preview-help">Open the list and select one answer. You can change it before submitting.</small>
-                    </div>
+                    <label for="dropdown_option" class="form-label">Choose one option</label>
+                    <select id="dropdown_option" name="option_id" class="form-input" required>
+                        <option value="" selected disabled>Choose an option</option>
+                        {% for opt in options %}
+                            <option value="{{ opt.id }}">{{ opt.option_text }}</option>
+                        {% endfor %}
+                    </select>
                 {% else %}
                     <div class="vote-options-grid">
                         {% for opt in options %}

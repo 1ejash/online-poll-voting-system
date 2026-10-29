@@ -13,3 +13,11 @@ The current vote storage and vote route still store one selected option per vote
 
 Verification:
 Python files were syntax-checked. Runtime tests require installing requirements.txt and a configured MySQL database; they were not verified against a live database in this build environment.
+
+
+Checkbox multi-select fix (2026-10-29):
+- Checkbox inputs now retain independent selected styling; changing one checkbox no longer clears the selected highlight from other options.
+- Checkbox controls now display square boxes with checkmarks, while radio controls remain round.
+- Voting route validates and stores every selected checkbox option ID for one voter/poll response.
+- Added tests for saving multiple selected options and rejecting an empty checkbox selection.
+- Run the test suite in the project's configured Python environment before deployment; live database/browser verification is environment-dependent.

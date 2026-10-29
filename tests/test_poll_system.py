@@ -222,6 +222,38 @@ class TestVotingSystem(BaseTestCase):
         votes = db.fetchall("SELECT * FROM votes WHERE poll_id = %s", (self.poll_id,))
         self.assertEqual(len(votes), 1)
 
+    def test_checkbox_poll_saves_all_selected_options(self):
+        db.execute("UPDATE polls SET poll_type = 'checkboxes' WHERE id = %s", (self.poll_id,))
+        self.register_user("Multi Select Voter", "multi.select.voter@gmail.com", "Password123")
+
+        response = self.client.post(
+            f"/vote/{self.poll_id}",
+            data={"option_ids": [str(self.opt1), str(self.opt2)]},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        answer = db.fetchone(
+            "SELECT selected_option_ids FROM poll_answers WHERE poll_id = %s",
+            (self.poll_id,),
+        )
+        self.assertIsNotNone(answer)
+        saved_ids = {part for part in answer["selected_option_ids"].split(",") if part}
+        self.assertEqual(saved_ids, {str(self.opt1), str(self.opt2)})
+
+    def test_checkbox_poll_rejects_empty_selection(self):
+        db.execute("UPDATE polls SET poll_type = 'checkboxes' WHERE id = %s", (self.poll_id,))
+        self.register_user("Empty Select Voter", "empty.select.voter@gmail.com", "Password123")
+
+        response = self.client.post(
+            f"/vote/{self.poll_id}", data={}, follow_redirects=True
+        )
+        self.assertEqual(response.status_code, 200)
+        answer = db.fetchone(
+            "SELECT id FROM poll_answers WHERE poll_id = %s", (self.poll_id,)
+        )
+        self.assertIsNone(answer)
+
     def test_voting_on_closed_poll_rejected(self):
         db.execute("UPDATE polls SET status = 'closed' WHERE id = %s", (self.poll_id,))
         self.register_user("Voter Three", "voter.three@gmail.com", "Password123")

@@ -60,22 +60,30 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // -------------------------------------------------------------
-    // Interactive Radio Vote Card Highlighting
+    // Vote option highlighting: radios are exclusive; checkboxes are independent.
+    // Do not clear other selected cards when a checkbox changes.
     // -------------------------------------------------------------
     const voteOptions = document.querySelectorAll(".vote-option-label");
     voteOptions.forEach(option => {
-        const radio = option.querySelector(".vote-option-input");
-        if (radio) {
-            radio.addEventListener("change", function () {
-                voteOptions.forEach(opt => opt.classList.remove("selected"));
-                if (this.checked) {
-                    option.classList.add("selected");
-                }
-            });
-            if (radio.checked) {
-                option.classList.add("selected");
+        const input = option.querySelector(".vote-option-input");
+        if (!input) return;
+
+        const syncSelectedState = () => {
+            option.classList.toggle("selected", input.checked);
+            if (input.type === "radio" && input.checked) {
+                voteOptions.forEach(otherOption => {
+                    if (otherOption === option) return;
+                    const otherInput = otherOption.querySelector(".vote-option-input");
+                    if (otherInput && otherInput.type === "radio" && otherInput.name === input.name) {
+                        otherOption.classList.toggle("selected", otherInput.checked);
+                    }
+                });
             }
-        }
+        };
+
+        input.addEventListener("change", syncSelectedState);
+        // Clicking the option card toggles its native input; keep styling in sync.
+        syncSelectedState();
     });
 
     // -------------------------------------------------------------

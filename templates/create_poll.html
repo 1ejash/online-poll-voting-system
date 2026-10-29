@@ -138,16 +138,6 @@
                 </div>
             </div>
 
-            <section class="question-preview-card" aria-live="polite" aria-label="Voter answer preview">
-                <div class="question-preview-heading">
-                    <span class="question-preview-kicker">VOTER PREVIEW</span>
-                    <span id="previewTypeLabel" class="question-preview-type">Multiple choice</span>
-                </div>
-                <p class="question-preview-question" id="previewQuestionText">Your question will appear here</p>
-                <div id="questionAnswerPreview"></div>
-                <small class="question-preview-help">This is a preview only. Voters will submit their answer on the voting page.</small>
-            </section>
-
             <div style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary" style="padding: 0.85rem 2rem;">
                     🚀 Publish Poll Now
@@ -161,85 +151,18 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const typeSelect = document.getElementById('poll_type');
-    const optionsWrapper = document.getElementById('optionsWrapper');
-    const optionsContainer = document.getElementById('dynamicOptionsContainer');
-    const questionInput = document.getElementById('question');
-    const previewTypeLabel = document.getElementById('previewTypeLabel');
-    const previewQuestionText = document.getElementById('previewQuestionText');
-    const answerPreview = document.getElementById('questionAnswerPreview');
-    if (!typeSelect || !optionsWrapper || !optionsContainer || !answerPreview) return;
-
-    const labels = {
-        multiple_choice: 'Multiple choice',
-        checkboxes: 'Checkboxes',
-        dropdown: 'Dropdown',
-        short_answer: 'Short answer',
-        paragraph: 'Paragraph'
-    };
-
-    function getOptionValues() {
-        return Array.from(optionsContainer.querySelectorAll('input[name^="option"]'))
-            .map(input => input.value.trim()).filter(Boolean);
-    }
-
+    const type = document.getElementById('poll_type');
+    const wrapper = document.getElementById('optionsWrapper');
     function updateQuestionType() {
-        const textMode = ['short_answer', 'paragraph'].includes(typeSelect.value);
-        optionsWrapper.hidden = textMode;
-        optionsWrapper.querySelectorAll('input[name^="option"]').forEach((input, index) => {
+        const textMode = ['short_answer', 'paragraph'].includes(type.value);
+        wrapper.hidden = textMode;
+        wrapper.querySelectorAll('input[name^="option"]').forEach((input, index) => {
             input.required = !textMode && index < 2;
             input.disabled = textMode;
         });
-        optionsWrapper.querySelectorAll('button').forEach(button => button.disabled = textMode);
-        renderPreview();
+        wrapper.querySelectorAll('button').forEach(button => button.disabled = textMode);
     }
-
-    function renderPreview() {
-        const type = typeSelect.value;
-        const values = getOptionValues();
-        previewTypeLabel.textContent = labels[type] || labels.multiple_choice;
-        previewQuestionText.textContent = (questionInput && questionInput.value.trim()) || 'Your question will appear here';
-        answerPreview.replaceChildren();
-
-        if (type === 'short_answer') {
-            const input = document.createElement('input');
-            input.type = 'text'; input.className = 'form-input';
-            input.placeholder = 'Short answer text'; input.disabled = true;
-            answerPreview.appendChild(input);
-        } else if (type === 'paragraph') {
-            const textarea = document.createElement('textarea');
-            textarea.className = 'form-textarea'; textarea.rows = 3;
-            textarea.placeholder = 'Long answer text'; textarea.disabled = true;
-            answerPreview.appendChild(textarea);
-        } else if (type === 'dropdown') {
-            const select = document.createElement('select');
-            select.className = 'form-input google-form-dropdown'; select.disabled = true;
-            const placeholder = document.createElement('option');
-            placeholder.value = ''; placeholder.textContent = 'Choose an option'; placeholder.selected = true;
-            select.appendChild(placeholder);
-            values.forEach(value => { const option = document.createElement('option'); option.textContent = value; select.appendChild(option); });
-            answerPreview.appendChild(select);
-        } else {
-            const list = document.createElement('div');
-            list.className = 'question-preview-options';
-            values.forEach(value => {
-                const label = document.createElement('label');
-                label.className = 'question-preview-option';
-                const input = document.createElement('input');
-                input.type = type === 'checkboxes' ? 'checkbox' : 'radio'; input.disabled = true;
-                const text = document.createElement('span'); text.textContent = value;
-                label.append(input, text); list.appendChild(label);
-            });
-            answerPreview.appendChild(list);
-        }
-    }
-
-    typeSelect.addEventListener('change', updateQuestionType);
-    if (questionInput) questionInput.addEventListener('input', renderPreview);
-    optionsContainer.addEventListener('input', renderPreview);
-    optionsContainer.addEventListener('click', function (event) {
-        if (event.target.closest('button')) setTimeout(renderPreview, 0);
-    });
+    type.addEventListener('change', updateQuestionType);
     updateQuestionType();
 });
 </script>
